@@ -1,9 +1,71 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <windows.h>
+// #include <windows.h>
 
 #include "RND/frame.h"
+#include "RND/render.h"
+#include "main.h"
 
+anim ani;
+
+
+void SetWindow(int w, int h, bool is_full_screen) {
+    if (ani.window != nullptr)
+        glfwDestroyWindow(ani.window);
+
+    if (is_full_screen)
+        ani.window = glfwCreateWindow(w, h, "SDF", glfwGetPrimaryMonitor(), NULL);
+    else
+        ani.window = glfwCreateWindow(w, h, "SDF", NULL, NULL);
+
+    if (ani.window == nullptr)
+        return;
+
+    glfwMakeContextCurrent(ani.window);
+    glfwSetFramebufferSizeCallback(ani.window, Reshape);
+
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+        return;
+
+    glViewport(0, 0, w, h);
+
+    ani.w = w, ani.h = h;
+    glfwGetCursorPos(ani.window, &ani.x, &ani.y);
+    renderInit(ani.window);
+}
+
+
+void Reshape(GLFWwindow* window, int w, int h) {
+    ani.w = w;
+    ani.h = h;
+    glViewport(0, 0, w, h);
+}
+
+
+int main() {
+    int k = glfwInit();
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    SetWindow(1920, 1080, false);
+
+    glClearColor(0.3f, 0.47f, 0.8f, 1.0f);
+    // glClear(GL_COLOR_BUFFER_BIT);
+
+    while (!ani.exit) {
+        ani.processInput();
+        render(ani.window);
+        glfwSwapBuffers(ani.window);
+        glfwPollEvents();
+    }
+
+    glfwTerminate();
+    return 0;
+}
+
+#if 0
 #define MAIN_WINDOW_CLASS "Main Window"
 
 frame Frame(0, 0);
@@ -136,7 +198,7 @@ LRESULT CALLBACK WinFunc(HWND hWnd, UINT Msg,
         bmi.bmiHeader = bmih;
 
         Frame.hDib = CreateDIBSection(NULL, (BITMAPINFO*)&bmih,
-            DIB_RGB_COLORS, (VOID**)&Frame.Image, NULL, 0);
+            DIB_RGB_COLORS, (void**)&Frame.Image, NULL, 0);
         if (Frame.hDib != NULL)
             Frame.W = w, Frame.H = h;
         else
@@ -161,3 +223,4 @@ LRESULT CALLBACK WinFunc(HWND hWnd, UINT Msg,
     }
     return DefWindowProc(hWnd, Msg, wParam, lParam);
 }
+#endif

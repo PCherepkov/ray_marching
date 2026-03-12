@@ -19,9 +19,24 @@
     <Filter Include="Source Files\render\ray">
       <UniqueIdentifier>{c7e9153b-424e-44da-b4b7-2f8b248d235a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\render\anim">
+      <UniqueIdentifier>{edce1789-fe03-4772-bfcd-ea0dc48f4eb5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\render\shaders">
+      <UniqueIdentifier>{dce438d3-6261-4155-b8ef-d6f1797e7daa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rnd\anim\anim.cpp">
+      <Filter>Source Files\render\anim</Filter>
+    </ClCompile>
+    <ClCompile Include="rnd\render.cpp">
+      <Filter>Source Files\render</Filter>
+    </ClCompile>
+    <ClCompile Include="glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -46,6 +61,18 @@
     </ClInclude>
     <ClInclude Include="rnd\ray\mins.h">
       <Filter>Source Files\render\ray</Filter>
+    </ClInclude>
+    <ClInclude Include="rnd\anim\anim.h">
+      <Filter>Source Files\render\anim</Filter>
+    </ClInclude>
+    <ClInclude Include="rnd\render.h">
+      <Filter>Source Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="main.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rnd\shaders\shader.h">
+      <Filter>Source Files\render\shaders</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,14 +1,19 @@
 #pragma once
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp> // subst X: D:/root/diskX
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <algorithm>
+#include <iostream>
 
 using namespace std;
 using namespace glm;
 
 typedef double dbl;
 typedef float flt;
+typedef unsigned long       DWORD;
 
 class color
 {
@@ -27,7 +32,7 @@ public:
     {
     }
 
-    color& clamp(VOID)
+    color& clamp(void)
     {
         R = std::max(std::min(R, 255.0), 0.0);
         G = std::max(std::min(G, 255.0), 0.0);
@@ -109,7 +114,7 @@ public:
         return color(NewR, NewG, NewB);
     }
 
-    DWORD DwordColor(VOID)
+    DWORD DwordColor(void)
     {
         DWORD DColor = ((DWORD)R << 8 * 2) + ((DWORD)G << 8) + (DWORD)B;
         return DColor;

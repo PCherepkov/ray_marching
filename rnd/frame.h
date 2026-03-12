@@ -63,7 +63,7 @@ public:
 			Image[Y * W + X] = Color;
 	}
 
-	VOID PutPixel(int X, int Y, color Color)
+	void PutPixel(int X, int Y, color Color)
 	{
 		if (X < W && X > -1 && Y < H && Y > -1)
 			Image[Y * W + X] = Color.DwordColor();
