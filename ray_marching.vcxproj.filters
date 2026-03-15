@@ -25,6 +25,9 @@
     <Filter Include="Source Files\render\shaders">
       <UniqueIdentifier>{dce438d3-6261-4155-b8ef-d6f1797e7daa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\render\shaders\default">
+      <UniqueIdentifier>{463ea7f4-2eed-4d90-a84b-9ef534028ab1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -74,5 +77,13 @@
     <ClInclude Include="rnd\shaders\shader.h">
       <Filter>Source Files\render\shaders</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="rnd\shaders\default\frag.glsl">
+      <Filter>Source Files\render\shaders\default</Filter>
+    </None>
+    <None Include="rnd\shaders\default\vert.glsl">
+      <Filter>Source Files\render\shaders\default</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -9,7 +9,7 @@
 class shader {
 public:
     enum uniform_types {
-        VEC3, MAT4, FLT
+        VEC3, IVEC2, MAT4, FLT
     };
 
     string path;
@@ -29,6 +29,9 @@ public:
         {
         case VEC3:
             glUniform3fv(loc, 1, value_ptr(*(vec3*)data));
+            break;
+        case IVEC2:
+            glUniform2iv(loc, 1, value_ptr(*(ivec2*)data));
             break;
         case MAT4:
             glUniformMatrix4fv(loc, 1, false, value_ptr(*(mat4*)data));

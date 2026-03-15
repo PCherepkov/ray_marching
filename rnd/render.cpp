@@ -8,6 +8,9 @@ void renderInit(GLFWwindow* window) {
 
 	float t = clock() / CLOCKS_PER_SEC;
 	ani.shd.SetUniform("time", shader::FLT, &t);
+
+	ivec2 resolution = ivec2(ani.w, ani.h);
+	ani.shd.SetUniform("ScreenResolution", shader::IVEC2, &(resolution));
 	return;
 }
 
@@ -15,7 +18,7 @@ void renderInit(GLFWwindow* window) {
 void render(GLFWwindow* window) {
 	glClear(GL_COLOR_BUFFER_BIT);
 	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	float t = (flt)clock() / CLOCKS_PER_SEC;
+	float t = (flt)glfwGetTime(); // (float)clock() / CLK_TCK;
 	ani.shd.SetUniform("time", shader::FLT, &t);
 
 	glUseProgram(ani.shd.prg);

@@ -38,6 +38,8 @@ void SetWindow(int w, int h, bool is_full_screen) {
 void Reshape(GLFWwindow* window, int w, int h) {
     ani.w = w;
     ani.h = h;
+    ivec2 resolution = ivec2(w, h);
+    ani.shd.SetUniform("ScreenResolution", shader::IVEC2, &(resolution));
     glViewport(0, 0, w, h);
 }
 
@@ -45,8 +47,8 @@ void Reshape(GLFWwindow* window, int w, int h) {
 int main() {
     int k = glfwInit();
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     SetWindow(1920, 1080, false);

@@ -166,6 +166,10 @@
     <ClInclude Include="rnd\scene.h" />
     <ClInclude Include="rnd\shaders\shader.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="rnd\shaders\default\frag.glsl" />
+    <None Include="rnd\shaders\default\vert.glsl" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
