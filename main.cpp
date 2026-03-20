@@ -51,10 +51,11 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    SetWindow(1920, 1080, false);
+    SetWindow(1920 / 2, 1080 / 2, false);
 
     glClearColor(0.3f, 0.47f, 0.8f, 1.0f);
     // glClear(GL_COLOR_BUFFER_BIT);
+    glfwSwapInterval(0);
 
     while (!ani.exit) {
         ani.processInput();
