@@ -47,23 +47,11 @@
     <ClInclude Include="def.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="rnd\frame.h">
-      <Filter>Source Files\render</Filter>
-    </ClInclude>
-    <ClInclude Include="rnd\scene.h">
-      <Filter>Source Files\render</Filter>
-    </ClInclude>
     <ClInclude Include="rnd\ray\shape.h">
-      <Filter>Source Files\render\ray</Filter>
-    </ClInclude>
-    <ClInclude Include="rnd\ray\ray.h">
       <Filter>Source Files\render\ray</Filter>
     </ClInclude>
     <ClInclude Include="rnd\camera.h">
       <Filter>Source Files\render</Filter>
-    </ClInclude>
-    <ClInclude Include="rnd\ray\mins.h">
-      <Filter>Source Files\render\ray</Filter>
     </ClInclude>
     <ClInclude Include="rnd\anim\anim.h">
       <Filter>Source Files\render\anim</Filter>

@@ -158,12 +158,8 @@
     <ClInclude Include="main.h" />
     <ClInclude Include="rnd\anim\anim.h" />
     <ClInclude Include="rnd\camera.h" />
-    <ClInclude Include="rnd\frame.h" />
-    <ClInclude Include="rnd\ray\mins.h" />
-    <ClInclude Include="rnd\ray\ray.h" />
     <ClInclude Include="rnd\ray\shape.h" />
     <ClInclude Include="rnd\render.h" />
-    <ClInclude Include="rnd\scene.h" />
     <ClInclude Include="rnd\shaders\shader.h" />
   </ItemGroup>
   <ItemGroup>

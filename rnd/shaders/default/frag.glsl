@@ -1,4 +1,4 @@
-#version 420 core
+#version 430 core
 
 in vec3 FragPos;
 out vec4 FragColor;
@@ -7,8 +7,8 @@ uniform float time;
 uniform ivec2 ScreenResolution;
 
 
-float tol = 1e-2;
-float inf = 1e3;
+float tol = 1e-3;
+float inf = 1e2;
 
 const uint SPHERE = 1;
 const uint PLANE = 2;
@@ -30,8 +30,12 @@ struct shape
     descr data;
 };
 
-int shapes_num = 3;
-shape shapes[3];
+layout(binding = 3) coherent restrict buffer mySSBO
+{
+    shape shapes[];
+};
+
+int shapes_num = 4;
 
 
 float ExpSMin(float a, float b, float k)
@@ -145,31 +149,20 @@ vec3 shade(shape S, vec3 p, vec3 N)
 
 void main()
 {
-    float w = ScreenResolution.x, h = ScreenResolution.y;
-    vec2 pxlpos = vec2(FragPos.x, FragPos.y / w * h) * 1;
+    float w = ScreenResolution.y, h = ScreenResolution.x;
+    vec2 pxlpos = vec2(FragPos.x, FragPos.y / h * w) * 1;
+    int pxlX = int((FragPos.x + 1) * 0.5 * w);
+    int pxlY = int((FragPos.y + 1) * 0.5 * h);
+    float pxlSize = FragPos.x / w;
 
-    shape S1, S2, P1;
-    S1.data.r = 1;
-    S1.data.center = vec3(0, 0, 2);
-    S1.color = vec3(0, 1, 0);
-    S1.type = SPHERE;
+    vec3 camDir = vec3(0, 0, 1);
 
-    S2.data.r = 0.5;
-    S2.data.center = vec3(sin(time * 1.5), 1 + sin(time * 2) * 0.5, 2 + cos(time));
-    S2.color = vec3(0, 0, 1);
-    S2.type = SPHERE;
-
-    P1.data.N = vec3(0, 1, 1);
-    P1.data.D = 1.5;
-    P1.type = PLANE;
-    P1.color = vec3(0.8, 0.1, 0.1);
-  
-    shapes[0] = S1;
-    shapes[1] = S2;
-    shapes[2] = P1;
+    // shapes[0].data.N = vec3(sin(time * 1.5), 1 + sin(time * 2) * 0.5, 2 + cos(time));
+    // shapes[0].data.D = sin(time * 8) * 0.5 + 0.5;
+    // shapes[1].color.x = (sin(time * 8) * 0.5 + 0.5);
     
     vec3 ResColor = vec3(0);
-    vec3 start = vec3(pxlpos, -1);
+    vec3 start = vec3(pxlpos, -1 + sin(time) * 0.5 * 0);
     vec3 dir = normalize(vec3(pxlpos, 1));
     int obj = -1;
 
@@ -199,12 +192,12 @@ void main()
                 break;
             }
             mdist = ExpSMin(mdist, dist, 0.16);
-            mdist = min(mdist, dist);
+            // mdist = min(mdist, dist);
             if (abs(mdist - prev) > abs(mdist - dist)) {
                 obj = i;
             }
         }
-        
+
         rstep = mdist;
         t += rstep;
         pos += dir * rstep;
@@ -215,11 +208,11 @@ void main()
 
     if (rstep <= tol)
     {
-        ResColor = shapes[obj].color;
-        ResColor = norm;
+        // ResColor = s.color;
+        // ResColor = norm;
         ResColor = shade(s, pos, norm);
         // ResColor = color_mix(pos);
     }
 
-    FragColor = vec4(ResColor, 1.0);
+    FragColor = vec4(ResColor, 0.0);
 }
