@@ -35,16 +35,16 @@ void renderInit(GLFWwindow* window) {
 
 	shape S1, S2, P1;
 	S1.data.r = 1;
-	S1.data.center = vec3(0, 0, 2);
+	S1.data.center = vec3(0, 0, -2);
 	S1.color = vec3(0, 1, 0);
 	S1.type = SPHERE;
 
 	S2.data.r = 0.5;
-	S2.data.center = vec3(0, 1, 2);
+	S2.data.center = vec3(0, 1, -2);
 	S2.color = vec3(0, 0, 1);
 	S2.type = SPHERE;
 
-	P1.data.N = normalize(vec3(0, 0.5, -0.5));
+	P1.data.N = normalize(vec3(0, 0.5, 0));
 	P1.data.D = 1.5;
 	P1.type = PLANE;
 	P1.color = vec3(0.8, 0.1, 0.105);
@@ -55,7 +55,7 @@ void renderInit(GLFWwindow* window) {
 
 	shapes[3].color = vec3(0.3, 0.04, 0.6);
 	shapes[3].type = 1;
-	shapes[3].data.center = vec3(3, 0, 2);
+	shapes[3].data.center = vec3(3, 0, -2);
 	shapes[3].data.r = 1.5;
 
 	int var = sizeof(shapes);

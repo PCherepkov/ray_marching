@@ -60,11 +60,15 @@ int main() {
     // glClear(GL_COLOR_BUFFER_BIT);
     glfwSwapInterval(0);
 
+    float time = 0;
+
     while (!ani.exit) {
         ani.processInput();
         render(ani.window);
         glfwSwapBuffers(ani.window);
         glfwPollEvents();
+        ani.Delta = glfwGetTime() - time;
+        time += ani.Delta;
     }
 
     glfwTerminate();

@@ -5,6 +5,10 @@ out vec4 FragColor;
 
 uniform float time;
 uniform ivec2 ScreenResolution;
+uniform vec3 cameraPos;
+uniform vec3 cameraDir;
+uniform vec3 cameraRight;
+uniform vec3 cameraUp;
 
 
 float tol = 1e-3;
@@ -136,7 +140,7 @@ vec3 Normal(vec3 pos)
 vec3 shade(shape S, vec3 p, vec3 N)
 {
     vec3 res = S.color;
-    vec3 LightPos = normalize(vec3(0, 4, -10));
+    vec3 LightPos = normalize(vec3(0, 4, 10));
     vec3 LightColor = vec3(1);
     float diff = max(dot(N, LightPos), 0.0);
     vec3 diffuse = LightColor * diff;
@@ -155,15 +159,17 @@ void main()
     int pxlY = int((FragPos.y + 1) * 0.5 * h);
     float pxlSize = FragPos.x / w;
 
-    vec3 camDir = vec3(0, 0, 1);
+    // vec3 camDir = cameraDir; // vec3(0, 0, 1);
 
     // shapes[0].data.N = vec3(sin(time * 1.5), 1 + sin(time * 2) * 0.5, 2 + cos(time));
     // shapes[0].data.D = sin(time * 8) * 0.5 + 0.5;
     // shapes[1].color.x = (sin(time * 8) * 0.5 + 0.5);
     
     vec3 ResColor = vec3(0);
-    vec3 start = vec3(pxlpos, -1 + sin(time) * 0.5 * 0);
-    vec3 dir = normalize(vec3(pxlpos, 1));
+    // vec3 start = vec3(pxlpos, -1 + sin(time) * 0.5 * 0) + cameraPos;
+    vec3 start = vec3(pxlpos.x * cameraRight + pxlpos.y * cameraUp + cameraDir) * 1 + cameraPos;
+    // vec3 dir = normalize(vec3(pxlpos, 1) + cameraDir);
+    vec3 dir = normalize(pxlpos.x * cameraRight + pxlpos.y * cameraUp + cameraDir);
     int obj = -1;
 
     float rstep = (inf + tol) / 2.0, t = 0.0;
