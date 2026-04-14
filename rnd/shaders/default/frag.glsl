@@ -5,10 +5,13 @@ out vec4 FragColor;
 
 uniform float time;
 uniform ivec2 ScreenResolution;
+
 uniform vec3 cameraPos;
 uniform vec3 cameraDir;
 uniform vec3 cameraRight;
 uniform vec3 cameraUp;
+
+uniform uint shapes_num;
 
 
 float tol = 1e-3;
@@ -39,11 +42,12 @@ layout(binding = 3) coherent restrict buffer mySSBO
     shape shapes[];
 };
 
-int shapes_num = 4;
+// int shapes_num = 4;
 
 
 float ExpSMin(float a, float b, float k)
 {
+    // return min(a, b);
     k *= 1.0;
     float r = exp2(-a / k) + exp2(-b / k);
     return -k * log2(r);
@@ -52,13 +56,14 @@ float ExpSMin(float a, float b, float k)
 
 float sphere_sdf(shape S, vec3 p)
 {
+    // return (abs(S.data.center.x - p.x) + abs(S.data.center.y - p.y) + abs(S.data.center.z - p.z) - S.data.r) * 0.57735027;
     return length(S.data.center - p) - S.data.r;
 }
 
 
 float plane_sdf(shape S, vec3 p)
 {
-    return dot(p, S.data.N) + S.data.D;
+    return abs(dot(p, S.data.N) + S.data.D);
 }
 
 
@@ -66,7 +71,7 @@ vec2 SDF(vec3 p)
 {
     float mdist = inf;
     int obj = -1;
-    for (int i; i < shapes_num; i++)
+    for (int i = 0; i < shapes_num; i++)
     {
         shape s = shapes[i];
         float prev = mdist;
@@ -137,6 +142,13 @@ vec3 Normal(vec3 pos)
 }
 
 
+vec3 reflVec(vec3 v, vec3 r)
+{
+    float k = dot(v, r);
+    return (k > 0) ? v : v - 2.f*r*k;
+}
+
+
 vec3 shade(shape S, vec3 p, vec3 N)
 {
     vec3 res = S.color;
@@ -167,15 +179,15 @@ void main()
     
     vec3 ResColor = vec3(0);
     // vec3 start = vec3(pxlpos, -1 + sin(time) * 0.5 * 0) + cameraPos;
-    vec3 start = vec3(pxlpos.x * cameraRight + pxlpos.y * cameraUp + cameraDir) * 1 + cameraPos;
+    vec3 start = vec3(pxlpos.x * cameraRight + pxlpos.y * cameraUp + cameraDir * 0.5) * 0 + cameraPos;
     // vec3 dir = normalize(vec3(pxlpos, 1) + cameraDir);
-    vec3 dir = normalize(pxlpos.x * cameraRight + pxlpos.y * cameraUp + cameraDir);
+    vec3 dir = normalize(pxlpos.x * cameraRight + pxlpos.y * cameraUp + cameraDir * 1.0);
     int obj = -1;
 
     float rstep = (inf + tol) / 2.0, t = 0.0;
     vec3 pos = start;
 
-    while (rstep > tol && rstep < inf && t < inf)
+    while (rstep > tol && rstep < inf && t < inf && t >= 0)
     {
         float mdist = inf;
 
@@ -197,6 +209,7 @@ void main()
                 dist = inf;
                 break;
             }
+
             mdist = ExpSMin(mdist, dist, 0.16);
             // mdist = min(mdist, dist);
             if (abs(mdist - prev) > abs(mdist - dist)) {
@@ -208,17 +221,23 @@ void main()
         t += rstep;
         pos += dir * rstep;
     }
+
+     // pos = reflVec(pos, cameraDir);
   
     shape s = shapes[obj];
     vec3 norm = Normal(pos);
+    
+    // norm = reflVec(norm, -cameraDir);
 
     if (rstep <= tol)
     {
-        // ResColor = s.color;
+        ResColor = s.color;
+        // ResColor = vec3(abs(rstep)) * 200;
         // ResColor = norm;
         ResColor = shade(s, pos, norm);
         // ResColor = color_mix(pos);
     }
 
     FragColor = vec4(ResColor, 0.0);
+    // FragColor = pow(FragColor, vec4(1/2.2));
 }

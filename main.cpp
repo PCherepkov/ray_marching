@@ -2,7 +2,7 @@
 #include <stdlib.h>
 // #include <windows.h>
 
-#include "RND/frame.h"
+// #include "RND/frame.h"
 #include "RND/render.h"
 #include "main.h"
 
@@ -23,6 +23,8 @@ void SetWindow(int w, int h, bool is_full_screen) {
 
     glfwMakeContextCurrent(ani.window);
     glfwSetFramebufferSizeCallback(ani.window, Reshape);
+    glfwSetScrollCallback(ani.window, [](GLFWwindow* window, double xoffset, double yoffset) { ani.scroll = yoffset; });
+    glfwSetKeyCallback(ani.window, ani.keyCallback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         return;
@@ -57,20 +59,44 @@ int main() {
 
     glClearColor(0.3f, 0.47f, 0.8f, 1.0f);
     glEnable(GL_MULTISAMPLE);
+    // glEnable(GL_FRAMEBUFFER_SRGB);
     // glClear(GL_COLOR_BUFFER_BIT);
     glfwSwapInterval(0);
+
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+    ImGui_ImplGlfw_InitForOpenGL(ani.window, true);
+    ImGui_ImplOpenGL3_Init();
 
     float time = 0;
 
     while (!ani.exit) {
+        glfwPollEvents();
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        ImGui::ShowDemoWindow();
+
         ani.processInput();
         render(ani.window);
+        
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         glfwSwapBuffers(ani.window);
-        glfwPollEvents();
+
         ani.Delta = glfwGetTime() - time;
         time += ani.Delta;
     }
 
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glfwTerminate();
     return 0;
 }

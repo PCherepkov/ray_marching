@@ -1,5 +1,19 @@
 #pragma once
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp> // subst X: D:/root/diskX
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
+
+#include <algorithm>
+#include <iostream>
+#include <vector>
+
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
@@ -8,14 +22,6 @@
 #define new DEBUG_NEW
 #endif
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp> // subst X: D:/root/diskX
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <algorithm>
-#include <iostream>
-
 using namespace std;
 using namespace glm;
 
@@ -23,6 +29,8 @@ typedef double dbl;
 typedef float flt;
 typedef unsigned long       DWORD;
 
+
+#if 0
 class color
 {
 public:
@@ -128,3 +136,4 @@ public:
         return DColor;
     }
 };
+#endif

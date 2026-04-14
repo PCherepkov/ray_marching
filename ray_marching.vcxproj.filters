@@ -28,6 +28,18 @@
     <Filter Include="Source Files\render\shaders\default">
       <UniqueIdentifier>{463ea7f4-2eed-4d90-a84b-9ef534028ab1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\imgui">
+      <UniqueIdentifier>{4a5b089a-9622-46ca-b4af-dba336f91d20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\imgui\backend">
+      <UniqueIdentifier>{17de433b-16d3-4487-985b-cd01b0d6b09c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\imgui\misc">
+      <UniqueIdentifier>{76f10c67-e471-4aac-9733-aec31fe9cf1c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\imgui\misc\cpp">
+      <UniqueIdentifier>{b26fb885-016e-4564-b2f4-37ae8da4390e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -41,6 +53,30 @@
     </ClCompile>
     <ClCompile Include="glad.c">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui-1.92.7\imgui.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui-1.92.7\imgui_tables.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui-1.92.7\imgui_widgets.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui-1.92.7\backends\imgui_impl_glfw.cpp">
+      <Filter>Source Files\imgui\backend</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui-1.92.7\backends\imgui_impl_opengl3.cpp">
+      <Filter>Source Files\imgui\backend</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui-1.92.7\imgui_demo.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui-1.92.7\imgui_draw.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui-1.92.7\misc\cpp\imgui_stdlib.cpp">
+      <Filter>Source Files\imgui\misc\cpp</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -64,6 +100,27 @@
     </ClInclude>
     <ClInclude Include="rnd\shaders\shader.h">
       <Filter>Source Files\render\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui-1.92.7\imconfig.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui-1.92.7\imgui.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui-1.92.7\imgui_internal.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui-1.92.7\imstb_rectpack.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui-1.92.7\imstb_textedit.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui-1.92.7\imstb_truetype.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui-1.92.7\misc\cpp\imgui_stdlib.h">
+      <Filter>Source Files\imgui\misc\cpp</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

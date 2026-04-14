@@ -11,6 +11,7 @@ public:
     mat4 MProj;
 
     vec3 Loc, At, Up, Right, Dir;
+    float speed;
 private:
     const dbl
         Near,          // Near clip plane.

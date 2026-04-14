@@ -71,7 +71,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>X:\;X:\glad\include;X:\glfw\glfw-3.4.bin.WIN64\include;$(IncludePath)</IncludePath>
+    <IncludePath>D:\me\spbu\research\the_thing\ray_marching\imgui-1.92.7;X:\;X:\glad\include;X:\glfw\glfw-3.4.bin.WIN64\include;$(IncludePath)</IncludePath>
     <LibraryPath>X:\glfw\glfw-3.4.bin.WIN64\lib-vc2022;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -149,12 +149,27 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="glad.c" />
+    <ClCompile Include="imgui-1.92.7\backends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="imgui-1.92.7\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="imgui-1.92.7\imgui.cpp" />
+    <ClCompile Include="imgui-1.92.7\imgui_demo.cpp" />
+    <ClCompile Include="imgui-1.92.7\imgui_draw.cpp" />
+    <ClCompile Include="imgui-1.92.7\imgui_tables.cpp" />
+    <ClCompile Include="imgui-1.92.7\imgui_widgets.cpp" />
+    <ClCompile Include="imgui-1.92.7\misc\cpp\imgui_stdlib.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="rnd\anim\anim.cpp" />
     <ClCompile Include="rnd\render.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="def.h" />
+    <ClInclude Include="imgui-1.92.7\imconfig.h" />
+    <ClInclude Include="imgui-1.92.7\imgui.h" />
+    <ClInclude Include="imgui-1.92.7\imgui_internal.h" />
+    <ClInclude Include="imgui-1.92.7\imstb_rectpack.h" />
+    <ClInclude Include="imgui-1.92.7\imstb_textedit.h" />
+    <ClInclude Include="imgui-1.92.7\imstb_truetype.h" />
+    <ClInclude Include="imgui-1.92.7\misc\cpp\imgui_stdlib.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="rnd\anim\anim.h" />
     <ClInclude Include="rnd\camera.h" />

@@ -4,6 +4,27 @@
 
 #include "../../def.h"
 
+const uint SPHERE = 1;
+const uint PLANE = 2;
+
+struct descr
+{
+	vec3 center;
+	float r;
+	vec3 N;
+	float D;
+};
+
+
+struct shape
+{
+	vec3 color;
+	uint type;
+	descr data;
+};
+
+
+#if 0
 class shape {
 public:
 	vec3 pos;
@@ -98,3 +119,4 @@ public:
 		return dot(N, p);
 	}
 };
+#endif
