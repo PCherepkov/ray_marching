@@ -9,19 +9,24 @@ const uint PLANE = 2;
 
 struct descr
 {
-	vec3 center;
-	float r;
-	vec3 N;
-	float D;
+	vec3 center = vec3(0);
+	float r = 0.f;
+	vec3 N = vec3(0);
+	float D = 0.f;
 };
 
 
 struct shape
 {
-	vec3 color;
-	uint type;
+	vec3 color = vec3(0);
+	uint type = 0;
 	descr data;
 };
+
+
+string descrToString(descr& D);
+descr stringToDescr(string str);
+
 
 
 #if 0

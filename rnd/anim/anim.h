@@ -18,10 +18,11 @@ public:
 	GLFWwindow* window;
 	int w, h;
 	double x, y, scroll;
-	bool is_fullscreen, exit;
+	bool is_fullscreen, exit, saved = false;
 	camera cam;
 	shader shd;
 	float Delta;
+	string path = "";
 
 	anim() {
 		window = nullptr;
@@ -38,6 +39,9 @@ public:
 	void processInput();
 	static void keyCallback(GLFWwindow* wnd, int key, int scancode, int action, int mods);
 
-	void addShape(shape& s) { shapes.push_back(s); update = true; }
+	void addShape(shape& s) { shapes.push_back(s); update = true; saved = false; }
 	void applyShapes(void);
+
+	void saveShapes(string fpath = "");
+	void loadShapes(string fpath);
 };

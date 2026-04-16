@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
+#include <string>
+#include <sstream>
 
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>

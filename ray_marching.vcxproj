@@ -71,12 +71,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>D:\me\spbu\research\the_thing\ray_marching\imgui-1.92.7;X:\;X:\glad\include;X:\glfw\glfw-3.4.bin.WIN64\include;$(IncludePath)</IncludePath>
-    <LibraryPath>X:\glfw\glfw-3.4.bin.WIN64\lib-vc2022;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\me\spbu\research\the_thing\ray_marching\nfd\include;D:\me\spbu\research\the_thing\ray_marching\imgui-1.92.7;X:\;X:\glad\include;X:\glfw\glfw-3.4.bin.WIN64\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\me\spbu\research\the_thing\ray_marching\nfd\lib\Debug\x64;X:\glfw\glfw-3.4.bin.WIN64\lib-vc2022;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>X:\glad\include;X:\glfw\glfw-3.3.8.bin.WIN64\include;$(IncludePath)</IncludePath>
-    <LibraryPath>X:\glfw\glfw-3.3.8.bin.WIN64\lib-vc2022;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\me\spbu\research\the_thing\ray_marching\nfd\include;X:\glad\include;X:\glfw\glfw-3.3.8.bin.WIN64\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\me\spbu\research\the_thing\ray_marching\nfd\lib\Release\x64;X:\glfw\glfw-3.3.8.bin.WIN64\lib-vc2022;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>X:\glad\include;X:\glfw\glfw-3.3.8.bin.WIN64\include;$(IncludePath)</IncludePath>
@@ -120,14 +120,14 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>X:\glm</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>nfd_d.lib;glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -144,7 +144,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>nfd.lib;glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -159,6 +159,8 @@
     <ClCompile Include="imgui-1.92.7\misc\cpp\imgui_stdlib.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="rnd\anim\anim.cpp" />
+    <ClCompile Include="rnd\gui\gui.cpp" />
+    <ClCompile Include="rnd\ray\shape.cpp" />
     <ClCompile Include="rnd\render.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -173,6 +175,7 @@
     <ClInclude Include="main.h" />
     <ClInclude Include="rnd\anim\anim.h" />
     <ClInclude Include="rnd\camera.h" />
+    <ClInclude Include="rnd\gui\gui.h" />
     <ClInclude Include="rnd\ray\shape.h" />
     <ClInclude Include="rnd\render.h" />
     <ClInclude Include="rnd\shaders\shader.h" />

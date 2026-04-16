@@ -187,7 +187,7 @@ void main()
     float rstep = (inf + tol) / 2.0, t = 0.0;
     vec3 pos = start;
 
-    while (rstep > tol && rstep < inf && t < inf && t >= 0)
+    while (rstep > tol && rstep < inf * 10 && abs(t - rstep) < inf * 10 && t >= 0)
     {
         float mdist = inf;
 

@@ -40,6 +40,9 @@
     <Filter Include="Source Files\imgui\misc\cpp">
       <UniqueIdentifier>{b26fb885-016e-4564-b2f4-37ae8da4390e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\render\ui">
+      <UniqueIdentifier>{ade0e3c9-0523-4259-8b90-cc1fc71d8e15}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -77,6 +80,12 @@
     </ClCompile>
     <ClCompile Include="imgui-1.92.7\misc\cpp\imgui_stdlib.cpp">
       <Filter>Source Files\imgui\misc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="rnd\gui\gui.cpp">
+      <Filter>Source Files\render\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="rnd\ray\shape.cpp">
+      <Filter>Source Files\render\ray</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -121,6 +130,9 @@
     </ClInclude>
     <ClInclude Include="imgui-1.92.7\misc\cpp\imgui_stdlib.h">
       <Filter>Source Files\imgui\misc\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="rnd\gui\gui.h">
+      <Filter>Source Files\render\ui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
