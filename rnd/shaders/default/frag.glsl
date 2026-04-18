@@ -16,10 +16,15 @@ uniform uint shapes_num;
 
 float tol = 1e-3;
 float inf = 3e2;
-uint MAX_STEPS = 1000000;
+uint MAX_STEPS = 1000;
 
 const uint SPHERE = 1;
 const uint PLANE = 2;
+const uint BOX = 3;
+const uint TORUS = 4;
+const uint CONE = 5;
+const uint CYLINDER = 6;
+const uint ELLIPSOID = 7;
 
 const uint ADD = 0;
 const uint SUB = 1;
@@ -64,7 +69,6 @@ layout(binding = 3) coherent restrict buffer mySSBO
 
 float ExpSMin(float a, float b, float k)
 {
-    // return min(a, b);
     if (k == 0) return min(a, b);
 
     k *= 1.0;
@@ -95,7 +99,6 @@ float GenMin(float a, float b, uint min_type, float min_coef)
 
 float sphere_sdf(shape S, vec3 p)
 {
-    // return (abs(S.data.center.x - p.x) + abs(S.data.center.y - p.y) + abs(S.data.center.z - p.z) - S.data.r) * 0.57735027;
     return length(S.data.center - p) - S.data.r;
 }
 
@@ -103,6 +106,42 @@ float sphere_sdf(shape S, vec3 p)
 float plane_sdf(shape S, vec3 p)
 {
     return dot(p, S.data.N) + S.data.D;
+}
+
+
+float box_sdf(shape S, vec3 p)
+{
+    vec3 q = abs(p - S.data.center) - S.data.sides;
+    return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
+}
+
+
+float torus_sdf(shape S, vec3 p)
+{
+    vec3 pos = p - S.data.center;
+    vec2 q = vec2(length(pos.xz) - S.data.r, pos.y);
+    return length(q) - S.data.R;
+}
+
+
+float ellipsoid_sdf(shape S, vec3 p)
+{
+    vec3 pos = p - S.data.center;
+    float k0 = length(pos / S.data.sides);
+    float k1 = length(pos / (S.data.sides * S.data.sides));
+    return k0 * (k0 - 1.0) / k1;
+}
+
+
+float cylinder_sdf(shape S, vec3 p)
+{
+    return inf;
+}
+
+
+float cone_sdf(shape S, vec3 p)
+{
+    return inf;
 }
 
 
@@ -123,6 +162,21 @@ vec2 SDF(vec3 p)
             break;
         case PLANE:
             dist = plane_sdf(s, p);
+            break;
+        case BOX:
+            dist = box_sdf(s, p);
+            break;
+        case TORUS:
+            dist = torus_sdf(s, p);
+            break;
+        case ELLIPSOID:
+            dist = ellipsoid_sdf(s, p);
+            break;
+        case CONE:
+            dist = cone_sdf(s, p);
+            break;
+        case CYLINDER:
+            dist = cylinder_sdf(s, p);
             break;
         default:
             dist = inf;
@@ -161,6 +215,21 @@ vec3 color_mix(vec3 p, float min_coef)
         case PLANE:
             dist = plane_sdf(s, p);
             break;
+        case BOX:
+            dist = box_sdf(s, p);
+            break;
+        case TORUS:
+            dist = torus_sdf(s, p);
+            break;
+        case ELLIPSOID:
+            dist = ellipsoid_sdf(s, p);
+            break;
+        case CONE:
+            dist = cone_sdf(s, p);
+            break;
+        case CYLINDER:
+            dist = cylinder_sdf(s, p);
+            break;
         default:
             dist = inf;
             break;
@@ -173,7 +242,6 @@ vec3 color_mix(vec3 p, float min_coef)
     }
 
     div = max(div, 1.0);
-    // return vec3(1 / div);
     return (res / div);
 }
 
@@ -225,14 +293,10 @@ void main()
     int pxlX = int((FragPos.x + 1) * 0.5 * w);
     int pxlY = int((FragPos.y + 1) * 0.5 * h);
     float pxlSize = FragPos.x / w;
-
-    // shapes[0].data.N = vec3(sin(time * 1.5), 1 + sin(time * 2) * 0.5, 2 + cos(time));
-    // shapes[0].data.D = sin(time * 8) * 0.5 + 0.5;
-    // shapes[1].color.x = (sin(time * 8) * 0.5 + 0.5);
-    
+  
     vec3 bgColor = vec3(0.47, 0.64, 0.96);
     vec3 ResColor = bgColor;
-    vec3 start = cameraPos; // + vec3(pxlpos.x * cameraRight + pxlpos.y * cameraUp + cameraDir * 0.5) * 0
+    vec3 start = cameraPos;
     vec3 dir = normalize(pxlpos.x * cameraRight + pxlpos.y * cameraUp + cameraDir * 1.0);
     int obj = -1;
 
@@ -254,36 +318,21 @@ void main()
         steps += 1;
     }
 
-    if (false && t > inf) {
-        // FragColor = vec4(0.8, 0, 0.8, 1.0);
-        FragColor = vec4(t/inf/20);
-        return;
-    }
-
-     // pos = reflVec(pos, cameraDir);
-  
     shape s = shapes[obj];
     vec3 norm = Normal(pos);
     
-    // norm = reflVec(norm, -cameraDir);
-
     if (rstep <= tol)
     {
         ResColor = s.color;
-        // ResColor = vec3(abs(rstep)) * 200;
         ResColor = norm;
         ResColor = shade(s, pos, norm);
-        // float fog = 1.0 - exp(-t*0.015);
         float fog = 1.0 - exp(-t*0.0125);
         if (t > 0) ResColor = mix(ResColor, bgColor, fog);
-        // ResColor = color_mix(pos);
     }
 
-    // ResColor = pow(ResColor, vec3(1/2.2));
     ResColor = pow(ResColor, vec3(0.4545));
     ResColor *= 0.9;
     ResColor = clamp(ResColor, 0, 1);
     ResColor = ResColor * ResColor * (3.0 - 2.0*ResColor);
     FragColor = vec4(ResColor, 0.0);
-    // FragColor = pow(FragColor, vec4(1/2.2));
 }

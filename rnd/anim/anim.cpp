@@ -147,6 +147,7 @@ void anim::loadShapes(string fpath) {
 	string buffer;
 
 	while (getline(fin, buffer)) {
+		if (buffer == "") continue;
 		shape S;
 		size_t start = 0, end = buffer.find(",");
 		S.type = stoi(buffer.substr(start, end - start)), start = end + 1, end = buffer.find(",", start);

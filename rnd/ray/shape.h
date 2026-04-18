@@ -9,8 +9,8 @@ namespace sindexes {
 	const uint PLANE = 2;
 	const uint BOX = 3;
 	const uint TORUS = 4;
-	// const uint CONE = 5;
-	const uint CYLINDER = 6;
+	const uint CONE = 5;      // not implemented
+	const uint CYLINDER = 6;  // not implemented
 	const uint ELLIPSOID = 7;
 }
 

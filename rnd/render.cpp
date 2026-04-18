@@ -13,7 +13,7 @@ void renderInit(GLFWwindow* window) {
 	ivec2 resolution = ivec2(ani.w, ani.h);
 	ani.shd.SetUniform("ScreenResolution", shader::IVEC2, &(resolution));
 
-	ani.loadShapes("scenes/default.sc");
+	ani.loadShapes("scenes/default_2.sc");
 	return;
 }
 
