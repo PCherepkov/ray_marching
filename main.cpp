@@ -76,7 +76,7 @@ int main() {
 
     float time = 0;
 
-    while (!ani.exit) {
+    while (!glfwWindowShouldClose(ani.window)) {
         glfwPollEvents();
 
         ImGui_ImplOpenGL3_NewFrame();
@@ -94,7 +94,7 @@ int main() {
 
         glfwSwapBuffers(ani.window);
 
-        ani.Delta = glfwGetTime() - time;
+        ani.Delta = (float)glfwGetTime() - time;
         time += ani.Delta;
     }
 

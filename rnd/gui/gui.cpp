@@ -1,16 +1,5 @@
 #include "gui.h"
-
-
-char* getPath(void) {
-    char* outPath = nullptr;
-    nfdresult_t result = NFD_OpenDialog("sc", "", &outPath);
-
-    if (result == NFD_OKAY)
-        return outPath;
-    cout << "Error occured";
-    free(outPath);
-    return nullptr;
-}
+#include "../anim/anim.h"
 
 
 void openScene(void) {
@@ -63,7 +52,7 @@ void mainTopBar(void) {
             if (ImGui::MenuItem("Open", "Ctrl+O")) { openScene(); }
             if (ImGui::MenuItem("Save", "Ctrl+S")) { saveScene(); }
             if (ImGui::MenuItem("Save As", "Ctrl+Shift+S")) { saveSceneAs(); }
-            if (ImGui::MenuItem("Exit", nullptr)) { ani.exit = true; }
+            if (ImGui::MenuItem("Exit", nullptr)) { glfwSetWindowShouldClose(ani.window, true); }
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Edit"))

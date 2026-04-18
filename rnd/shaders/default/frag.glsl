@@ -15,10 +15,19 @@ uniform uint shapes_num;
 
 
 float tol = 1e-3;
-float inf = 1e2;
+float inf = 3e2;
+uint MAX_STEPS = 1000000;
 
 const uint SPHERE = 1;
 const uint PLANE = 2;
+
+const uint ADD = 0;
+const uint SUB = 1;
+const uint INT = 2;
+
+const uint MIN = 0;
+const uint EXP = 1;
+const uint CUB = 2;
 
 
 struct descr
@@ -27,6 +36,10 @@ struct descr
     float r;
     vec3 N;
     float D;
+    vec3 sides;
+	float R;
+	vec3 cap;
+	float padding;
 };
 
 
@@ -34,6 +47,12 @@ struct shape
 {
     vec3 color;
     uint type;
+    uint min_type;
+    float min_coef;
+    uint mode;
+
+    uint padding;
+
     descr data;
 };
 
@@ -42,15 +61,35 @@ layout(binding = 3) coherent restrict buffer mySSBO
     shape shapes[];
 };
 
-// int shapes_num = 4;
-
 
 float ExpSMin(float a, float b, float k)
 {
     // return min(a, b);
+    if (k == 0) return min(a, b);
+
     k *= 1.0;
     float r = exp2(-a / k) + exp2(-b / k);
     return -k * log2(r);
+}
+
+
+vec2 CubicSMin(float a, float b, float k)
+{
+    float h = 1.0 - min(abs(a - b) / (6.0 * k), 1.0);
+    float w = h * h * h;
+
+    return (a < b) ? vec2(a - w*k, w/2) : vec2(b - w*k, 1.0 - w/2);
+}
+
+
+// General minimum function
+float GenMin(float a, float b, uint min_type, float min_coef)
+{
+    if (min_type == MIN)
+        return min(a, b);
+    if (min_type == EXP);
+        return ExpSMin(a, b, min_coef);
+    return a;
 }
 
 
@@ -63,7 +102,7 @@ float sphere_sdf(shape S, vec3 p)
 
 float plane_sdf(shape S, vec3 p)
 {
-    return abs(dot(p, S.data.N) + S.data.D);
+    return dot(p, S.data.N) + S.data.D;
 }
 
 
@@ -89,7 +128,14 @@ vec2 SDF(vec3 p)
             dist = inf;
             break;
         }
-        mdist = ExpSMin(mdist, dist, 0.16);
+
+        if (s.mode == ADD)
+            mdist = GenMin(mdist, dist, s.min_type, s.min_coef);
+        else if (s.mode == SUB)
+            mdist = -GenMin(-mdist, dist, s.min_type, s.min_coef);
+        else
+            mdist = -GenMin(-mdist, -dist, s.min_type, s.min_coef);
+
         if (abs(mdist - prev) > abs(mdist - dist))
             obj = i;
     }
@@ -98,9 +144,11 @@ vec2 SDF(vec3 p)
 }
 
 
-vec3 color_mix(vec3 p)
+vec3 color_mix(vec3 p, float min_coef)
 {
     vec3 res = vec3(0);
+    float div = 0.0;
+
     for (int i = 0; i < shapes_num; i++)
     {
         shape s = shapes[i];
@@ -117,9 +165,16 @@ vec3 color_mix(vec3 p)
             dist = inf;
             break;
         }
-        res += s.color / (1.0 + dist * 10.0);
+
+
+        float coef = exp(-dist * 6.0 / s.min_coef * 0.16);
+        res += s.color * coef;
+        div += coef;
     }
-    return res;
+
+    div = max(div, 1.0);
+    // return vec3(1 / div);
+    return (res / div);
 }
 
 
@@ -158,7 +213,7 @@ vec3 shade(shape S, vec3 p, vec3 N)
     vec3 diffuse = LightColor * diff;
     float amb = 0.1;
     vec3 ambient = amb * LightColor;
-    res = (diffuse + ambient) * color_mix(p);
+    res = (diffuse + ambient) * color_mix(p, S.min_coef);
     return res;
 }
 
@@ -171,55 +226,38 @@ void main()
     int pxlY = int((FragPos.y + 1) * 0.5 * h);
     float pxlSize = FragPos.x / w;
 
-    // vec3 camDir = cameraDir; // vec3(0, 0, 1);
-
     // shapes[0].data.N = vec3(sin(time * 1.5), 1 + sin(time * 2) * 0.5, 2 + cos(time));
     // shapes[0].data.D = sin(time * 8) * 0.5 + 0.5;
     // shapes[1].color.x = (sin(time * 8) * 0.5 + 0.5);
     
-    vec3 ResColor = vec3(0);
-    // vec3 start = vec3(pxlpos, -1 + sin(time) * 0.5 * 0) + cameraPos;
-    vec3 start = vec3(pxlpos.x * cameraRight + pxlpos.y * cameraUp + cameraDir * 0.5) * 0 + cameraPos;
-    // vec3 dir = normalize(vec3(pxlpos, 1) + cameraDir);
+    vec3 bgColor = vec3(0.47, 0.64, 0.96);
+    vec3 ResColor = bgColor;
+    vec3 start = cameraPos; // + vec3(pxlpos.x * cameraRight + pxlpos.y * cameraUp + cameraDir * 0.5) * 0
     vec3 dir = normalize(pxlpos.x * cameraRight + pxlpos.y * cameraUp + cameraDir * 1.0);
     int obj = -1;
 
     float rstep = (inf + tol) / 2.0, t = 0.0;
     vec3 pos = start;
+    uint steps = 0;
 
-    while (rstep > tol && rstep < inf * 10 && abs(t - rstep) < inf * 10 && t >= 0)
+    while (abs(rstep) > tol && t < inf && t >= 0 && steps < MAX_STEPS)
     {
         float mdist = inf;
 
-        for (int i = 0; i < shapes_num; i++)
-        {
-            shape s = shapes[i];
-            float prev = mdist;
-            float dist;
-            
-            switch (s.type)
-            {
-            case SPHERE:
-                dist = sphere_sdf(s, pos);
-                break;
-            case PLANE:
-                dist = plane_sdf(s, pos);
-                break;
-            default:
-                dist = inf;
-                break;
-            }
-
-            mdist = ExpSMin(mdist, dist, 0.16);
-            // mdist = min(mdist, dist);
-            if (abs(mdist - prev) > abs(mdist - dist)) {
-                obj = i;
-            }
-        }
+        vec2 sdf_res = SDF(pos);
+        obj = int(sdf_res.y);
+        mdist = sdf_res.x;
 
         rstep = mdist;
         t += rstep;
         pos += dir * rstep;
+        steps += 1;
+    }
+
+    if (false && t > inf) {
+        // FragColor = vec4(0.8, 0, 0.8, 1.0);
+        FragColor = vec4(t/inf/20);
+        return;
     }
 
      // pos = reflVec(pos, cameraDir);
@@ -233,11 +271,19 @@ void main()
     {
         ResColor = s.color;
         // ResColor = vec3(abs(rstep)) * 200;
-        // ResColor = norm;
+        ResColor = norm;
         ResColor = shade(s, pos, norm);
+        // float fog = 1.0 - exp(-t*0.015);
+        float fog = 1.0 - exp(-t*0.0125);
+        if (t > 0) ResColor = mix(ResColor, bgColor, fog);
         // ResColor = color_mix(pos);
     }
 
+    // ResColor = pow(ResColor, vec3(1/2.2));
+    ResColor = pow(ResColor, vec3(0.4545));
+    ResColor *= 0.9;
+    ResColor = clamp(ResColor, 0, 1);
+    ResColor = ResColor * ResColor * (3.0 - 2.0*ResColor);
     FragColor = vec4(ResColor, 0.0);
     // FragColor = pow(FragColor, vec4(1/2.2));
 }

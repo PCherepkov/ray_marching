@@ -18,7 +18,7 @@ public:
 	GLFWwindow* window;
 	int w, h;
 	double x, y, scroll;
-	bool is_fullscreen, exit, saved = false;
+	bool is_fullscreen, saved = false;
 	camera cam;
 	shader shd;
 	float Delta;

@@ -1,5 +1,6 @@
 #include "anim.h"
 #include "../../def.h"
+#include "../gui/gui.h"
 
 
 void anim::processInput() {
@@ -14,8 +15,9 @@ void anim::processInput() {
 		return;
 	}
 
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		exit = true; // glfwSetWindowShouldClose(window, true);
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, true);
+	}
 	if (glfwGetKey(window, GLFW_KEY_F11) == GLFW_PRESS) {
 		; // SetWindow(1920, 1080, true);; // glfwSetWindowShouldClose(window, true);
 	}
@@ -33,6 +35,9 @@ void anim::processInput() {
 		moveDir += cam.Up;
 	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
 		moveDir += -cam.Up;
+
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+		moveDir *= 0.0;
 
 	bool fast = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
 	cam.speed *= exp((float)scroll / 40);
@@ -82,12 +87,26 @@ void anim::keyCallback(GLFWwindow* wnd, int key, int scancode, int action, int m
 	if (key == GLFW_KEY_ENTER && action == GLFW_PRESS) {
 		shape s;
 		s.color = vec3(0.3, 0.47, 0.8);
-		s.type = SPHERE;
+		s.type = sindexes::SPHERE;
 		s.data.center = ani.cam.Loc;
 		s.data.r = 1.0;
 		ani.addShape(s);
 		ani.applyShapes();
 	}
+
+	if (key == GLFW_KEY_S && action == GLFW_PRESS && glfwGetKey(ani.window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+		saveScene();
+	if (key == GLFW_KEY_S && action == GLFW_PRESS &&
+		glfwGetKey(ani.window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS &&
+		glfwGetKey(ani.window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+		saveSceneAs();
+	if (key == GLFW_KEY_O && action == GLFW_PRESS && glfwGetKey(ani.window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+		openScene();
+	if (key == GLFW_KEY_R && action == GLFW_PRESS && glfwGetKey(ani.window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+		ani.loadShapes(ani.path);
+
+	if (key == GLFW_KEY_HOME && action == GLFW_PRESS)
+		ani.cam.Loc = vec3(0);
 }
 
 
@@ -105,8 +124,11 @@ void anim::saveShapes(string fpath) {
 
 	for (size_t i = 0; i < shapes.size(); i++) {
 		fout << shapes[i].type << ',';
+		fout << shapes[i].mode << ',';
 		fout << shapes[i].color.r << ',' << shapes[i].color.g << ',' << shapes[i].color.b << ',';
-		fout << descrToString(shapes[i].data) << '\n';
+		fout << shapes[i].min_type << ',';
+		fout << shapes[i].min_coef << ',';
+		fout << descrToString(shapes[i].type, shapes[i].data) << '\n';
 	}
 
 	fout.close();
@@ -119,8 +141,6 @@ void anim::loadShapes(string fpath) {
 	if (fpath == "") return;
 	ifstream fin(fpath);
 	if (!fin.is_open()) { std::cout << "error while trying to open." << '\n'; return; }
-	// size_t format = fpath.rfind('.');
-	// if (fpath.substr(format, string::npos) != ".sc") { cout << "wrong file format." << '\n'; return; }
 
 	ani.path = fpath;
 	ani.shapes.clear();
@@ -130,11 +150,16 @@ void anim::loadShapes(string fpath) {
 		shape S;
 		size_t start = 0, end = buffer.find(",");
 		S.type = stoi(buffer.substr(start, end - start)), start = end + 1, end = buffer.find(",", start);
+		S.mode = stoi(buffer.substr(start, end - start)), start = end + 1, end = buffer.find(",", start);
 
 		S.color.r = stof(buffer.substr(start, end - start)), start = end + 1, end = buffer.find(",", start);
 		S.color.g = stof(buffer.substr(start, end - start)), start = end + 1, end = buffer.find(",", start);
-		S.color.b = stof(buffer.substr(start, end - start)), start = end + 1, end = buffer.length();
-		S.data = stringToDescr(buffer.substr(start, end - start));
+		S.color.b = stof(buffer.substr(start, end - start)), start = end + 1, end = buffer.find(",", start);
+
+		S.min_type = stoi(buffer.substr(start, end - start)), start = end + 1, end = buffer.find(",", start);
+		S.min_coef = stof(buffer.substr(start, end - start)), start = end + 1, end = buffer.length();
+
+		S.data = stringToDescr(S.type, buffer.substr(start, end - start));
 		ani.addShape(S);
 	}
 
