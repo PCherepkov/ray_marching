@@ -5,9 +5,15 @@
 #include "../../def.h"
 // #include "../anim/anim.h"
 
+class GUIData {
+public:
+    bool open_help_flag;
+};
+
 void openScene(void);
 void saveSceneAs(void);
 void saveScene(void);
 
 void mainTopBar(void);
 void mainOverlay(void);
+void helpInfo(void);

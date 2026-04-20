@@ -21,6 +21,7 @@ void renderInit(GLFWwindow* window) {
 void renderGUI(void) {
 	mainTopBar();
 	mainOverlay();
+	if (ani.gui.open_help_flag) helpInfo();
 }
 
 

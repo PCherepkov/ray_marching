@@ -22,7 +22,8 @@ namespace modes {
 
 namespace smins {
 	const uint MIN = 0;
-	const uint EXP = 1;
+	const uint CUB = 1;
+	const uint EXP = 2;
 }
 
 struct descr

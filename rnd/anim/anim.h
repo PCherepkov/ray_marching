@@ -4,6 +4,7 @@
 #include "../shaders/shader.h"
 #include "../camera.h"
 #include "../ray/shape.h"
+#include "../gui/gui.h"
 
 
 class anim;
@@ -15,6 +16,7 @@ class anim {
 	bool update;
 	vector<shape> shapes;
 public:
+	GUIData gui;
 	GLFWwindow* window;
 	int w, h;
 	double x, y, scroll;
@@ -44,4 +46,8 @@ public:
 
 	void saveShapes(string fpath = "");
 	void loadShapes(string fpath);
+
+	size_t numOfShapes(void) { return shapes.size(); }
+	shape getShape(size_t ind = 0) { return shapes[ind]; }
+	vector<shape>* getAllShapes(void) { return &shapes; }
 };

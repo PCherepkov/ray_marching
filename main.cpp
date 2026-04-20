@@ -82,9 +82,6 @@ int main() {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-#if 0
-        ImGui::ShowDemoWindow(); // show demo
-#endif
 
         ani.processInput();
         render(ani.window);
