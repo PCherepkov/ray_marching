@@ -31,8 +31,8 @@ const uint SUB = 1;
 const uint INT = 2;
 
 const uint MIN = 0;
-const uint EXP = 1;
-const uint CUB = 2;
+const uint CUB = 1;
+const uint EXP = 2;
 
 
 struct descr
@@ -77,23 +77,25 @@ float ExpSMin(float a, float b, float k)
 }
 
 
-vec2 CubicSMin(float a, float b, float k)
+float CubicSMin(float a, float b, float k)
 {
     float h = 1.0 - min(abs(a - b) / (6.0 * k), 1.0);
     float w = h * h * h;
 
-    return (a < b) ? vec2(a - w*k, w/2) : vec2(b - w*k, 1.0 - w/2);
+    return (a < b) ? a - w*k : b - w*k;
 }
 
 
 // General minimum function
 float GenMin(float a, float b, uint min_type, float min_coef)
 {
+    // return min(a, b);
     if (min_type == MIN)
-        return min(a, b);
-    if (min_type == EXP);
+        return (a < b) ? a : b;
+    if (min_type == EXP)
         return ExpSMin(a, b, min_coef);
-    return a;
+    if (min_type == CUB)
+        return CubicSMin(a, b, min_coef);
 }
 
 
@@ -145,6 +147,42 @@ float cone_sdf(shape S, vec3 p)
 }
 
 
+// general sdf function
+float GenSDF(shape S, vec3 p)
+{
+    float dist;
+
+    switch (S.type)
+    {
+    case SPHERE:
+        dist = sphere_sdf(S, p);
+        break;
+    case PLANE:
+        dist = plane_sdf(S, p);
+        break;
+    case BOX:
+        dist = box_sdf(S, p);
+        break;
+    case TORUS:
+        dist = torus_sdf(S, p);
+        break;
+    case ELLIPSOID:
+        dist = ellipsoid_sdf(S, p);
+        break;
+    case CONE:
+        dist = cone_sdf(S, p);
+        break;
+    case CYLINDER:
+        dist = cylinder_sdf(S, p);
+        break;
+    default:
+        dist = inf;
+        break;
+    }
+    return dist;
+}
+
+
 vec2 SDF(vec3 p)
 {
     float mdist = inf;
@@ -153,35 +191,7 @@ vec2 SDF(vec3 p)
     {
         shape s = shapes[i];
         float prev = mdist;
-        float dist;
-
-        switch (s.type)
-        {
-        case SPHERE:
-            dist = sphere_sdf(s, p);
-            break;
-        case PLANE:
-            dist = plane_sdf(s, p);
-            break;
-        case BOX:
-            dist = box_sdf(s, p);
-            break;
-        case TORUS:
-            dist = torus_sdf(s, p);
-            break;
-        case ELLIPSOID:
-            dist = ellipsoid_sdf(s, p);
-            break;
-        case CONE:
-            dist = cone_sdf(s, p);
-            break;
-        case CYLINDER:
-            dist = cylinder_sdf(s, p);
-            break;
-        default:
-            dist = inf;
-            break;
-        }
+        float dist = GenSDF(s, p);
 
         if (s.mode == ADD)
             mdist = GenMin(mdist, dist, s.min_type, s.min_coef);
@@ -206,35 +216,7 @@ vec3 color_mix(vec3 p, float min_coef)
     for (int i = 0; i < shapes_num; i++)
     {
         shape s = shapes[i];
-        float dist;
-        switch (s.type)
-        {
-        case SPHERE:
-            dist = sphere_sdf(s, p);
-            break;
-        case PLANE:
-            dist = plane_sdf(s, p);
-            break;
-        case BOX:
-            dist = box_sdf(s, p);
-            break;
-        case TORUS:
-            dist = torus_sdf(s, p);
-            break;
-        case ELLIPSOID:
-            dist = ellipsoid_sdf(s, p);
-            break;
-        case CONE:
-            dist = cone_sdf(s, p);
-            break;
-        case CYLINDER:
-            dist = cylinder_sdf(s, p);
-            break;
-        default:
-            dist = inf;
-            break;
-        }
-
+        float dist = GenSDF(s, p);
 
         float coef = exp(-dist * 6.0 / s.min_coef * 0.16);
         res += s.color * coef;
@@ -281,6 +263,7 @@ vec3 shade(shape S, vec3 p, vec3 N)
     vec3 diffuse = LightColor * diff;
     float amb = 0.1;
     vec3 ambient = amb * LightColor;
+    if (S.min_coef <= 0) return (diffuse + ambient) * S.color;
     res = (diffuse + ambient) * color_mix(p, S.min_coef);
     return res;
 }
@@ -306,13 +289,10 @@ void main()
 
     while (abs(rstep) > tol && t < inf && t >= 0 && steps < MAX_STEPS)
     {
-        float mdist = inf;
-
         vec2 sdf_res = SDF(pos);
         obj = int(sdf_res.y);
-        mdist = sdf_res.x;
 
-        rstep = mdist;
+        rstep = sdf_res.x;
         t += rstep;
         pos += dir * rstep;
         steps += 1;

@@ -37,6 +37,7 @@ string descrToString(uint type, descr& D) {
 
 descr stringToDescr(uint type, string str) {
 	descr D;
+
 	size_t start = 0, end = str.find(",");
 
 	if (type == sindexes::SPHERE || type == sindexes::TORUS) {
@@ -74,21 +75,3 @@ descr stringToDescr(uint type, string str) {
 	}
 	return D;
 }
-
-
-/*
-if (type == sindexes::SPHERE) {
-		D.center.x = stof(str.substr(start, end - start)), start = end + 1, end = str.find(",", start);
-		D.center.y = stof(str.substr(start, end - start)), start = end + 1, end = str.find(",", start);
-		D.center.z = stof(str.substr(start, end - start)), start = end + 1, end = str.find(",", start);
-
-		D.r = stof(str.substr(start, end - start)), start = end + 1, end = str.find(",", start);
-	}
-	if (type == sindexes::PLANE) {
-		D.N.x = stof(str.substr(start, end - start)), start = end + 1, end = str.find(",", start);
-		D.N.y = stof(str.substr(start, end - start)), start = end + 1, end = str.find(",", start);
-		D.N.z = stof(str.substr(start, end - start)), start = end + 1, end = str.find(",", start);;
-
-		D.D = stof(str.substr(start, end)), start = end + 1, end = str.find(",", start);
-	}
-*/
