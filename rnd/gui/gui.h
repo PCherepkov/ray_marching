@@ -13,6 +13,7 @@ public:
 void openScene(void);
 void saveSceneAs(void);
 void saveScene(void);
+void newScene(void);
 
 void mainTopBar(void);
 void mainOverlay(void);

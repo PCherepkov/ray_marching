@@ -15,9 +15,6 @@ void anim::processInput() {
 		return;
 	}
 
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, true);
-	}
 	if (glfwGetKey(window, GLFW_KEY_F11) == GLFW_PRESS) {
 		; // SetWindow(1920, 1080, true);; // glfwSetWindowShouldClose(window, true);
 	}
@@ -102,11 +99,16 @@ void anim::keyCallback(GLFWwindow* wnd, int key, int scancode, int action, int m
 		saveSceneAs();
 	if (key == GLFW_KEY_O && action == GLFW_PRESS && glfwGetKey(ani.window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 		openScene();
+	if (key == GLFW_KEY_N && action == GLFW_PRESS && glfwGetKey(ani.window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+		newScene();
 	if (key == GLFW_KEY_R && action == GLFW_PRESS && glfwGetKey(ani.window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 		ani.loadShapes(ani.path);
 
 	if (key == GLFW_KEY_HOME && action == GLFW_PRESS)
 		ani.cam.Loc = vec3(0);
+
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS && glfwGetKey(ani.window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+		glfwSetWindowShouldClose(ani.window, true);
 }
 
 

@@ -44,6 +44,8 @@ public:
 	void addShape(shape& s) { shapes.push_back(s); update = true; saved = false; }
 	void applyShapes(void);
 
+	void clearShapes(void) { shapes.clear(); }
+
 	void saveShapes(string fpath = "");
 	void loadShapes(string fpath);
 
