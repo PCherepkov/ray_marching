@@ -49,6 +49,10 @@ public:
 	void saveShapes(string fpath = "");
 	void loadShapes(string fpath);
 
+	void setBackgroundColor(vec3& color) { shd.SetUniform("bgColor", shader::VEC3, (void*)glm::value_ptr(color)); }
+	void setColorCorrection(uint flag) { shd.SetUniform("colorCorrection", shader::BOOL, &flag); }
+	void setFogDensity(float coeff) { shd.SetUniform("fog_coeff", shader::FLT, &coeff); }
+
 	size_t numOfShapes(void) { return shapes.size(); }
 	shape getShape(size_t ind = 0) { return shapes[ind]; }
 	vector<shape>* getAllShapes(void) { return &shapes; }

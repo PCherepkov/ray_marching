@@ -85,6 +85,8 @@ int main() {
 
         ani.processInput();
         render(ani.window);
+
+        // ImGui::ShowDemoWindow();
         
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

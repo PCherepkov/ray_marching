@@ -76,7 +76,7 @@ void helpInfo(void) {
     }
 
     ImGuiStyle& style = ImGui::GetStyle();
-    ImGui::PushFont(NULL, style.FontSizeBase * 1.5);
+    ImGui::PushFont(NULL, style.FontSizeBase * 1.5f);
     ImGui::Text("Camera position");
     ImGui::PopFont();
     ImGui::Separator();
@@ -119,6 +119,35 @@ void mainTopBar(void) {
             if (ImGui::MenuItem("Open help", "")) { ani.gui.open_help_flag = true; }
             ImGui::EndMenu();
         }
+        if (ImGui::BeginMenu("Options")) {
+            ImGui::BeginTable("option table", 2, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchSame);
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            static vec3 bgColor(0.47, 0.64, 0.96);
+            ImGui::Text("Background color");
+            ImGui::TableSetColumnIndex(1);
+            if (ImGui::ColorEdit3("##0", glm::value_ptr(bgColor), ImGuiColorEditFlags_NoPicker & 0)) ani.setBackgroundColor(bgColor);
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Do color correction");
+            ImGui::TableSetColumnIndex(1);
+            static bool colorCorrect = 1;
+            if (ImGui::Checkbox("##1", &colorCorrect)) {
+                // colorCorrect = 1 - colorCorrect;
+                ani.setColorCorrection(colorCorrect);
+            }
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Fog");
+            ImGui::TableSetColumnIndex(1);
+            static float fog_coeff = 0.0125f;
+            if (ImGui::DragFloat("##2", &fog_coeff, 0.0001f, 0, 1, "%.4f")) ani.setFogDensity(fog_coeff);
+
+            ImGui::EndTable();
+            ImGui::EndMenu();
+        }
         ImGui::EndMainMenuBar();
     }
     return;
@@ -131,6 +160,7 @@ void mainOverlay(void) {
                                     ImGuiWindowFlags_NoSavedSettings |
                                     ImGuiWindowFlags_NoFocusOnAppearing |
                                     ImGuiWindowFlags_NoNav;
+    ImGuiStyle style = ImGui::GetStyle();
 
     const float PAD = 0.0f;
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -142,10 +172,14 @@ void mainOverlay(void) {
     window_pos_pivot.x = (location & 1) ? 1.0f : 0.0f;
     window_pos_pivot.y = (location & 2) ? 1.0f : 0.0f;
     ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-    window_flags |= ImGuiWindowFlags_NoMove;
+    window_flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize;
 
     ImGui::SetNextWindowBgAlpha(0.9f);
+
+    ImGui::SetNextWindowSize(ImVec2(0, viewport->WorkSize.y));
+
     bool* p_open = 0;
+
     if (ImGui::Begin("Elements", p_open, window_flags))
     {
         ImGui::Text("Scene elements\n" "(right-click to change position)");
@@ -168,15 +202,18 @@ void mainOverlay(void) {
         size_t to_down = -1;
 
         for (int i = 0; i < n; i++) {
-            // ImGui::Text("%02.0f | %s: (%.2f,%.2f,%.2f)", (float)(i + 1), snames[shapes[i].type].c_str(), shapes[i].data.center.x, shapes[i].data.center.y, shapes[i].data.center.z);
             ImGui::PushID(i);
-            if (ImGui::TreeNode("##", "%d %s", i + 1, snames[(*shapes)[i].type].c_str())) {
+            ImVec2 node_pos = ImGui::GetCursorScreenPos();
+
+            if (ImGui::TreeNodeEx("##", ImGuiTreeNodeFlags_None, "%d %s", i + 1, snames[(*shapes)[i].type].c_str())) {
                 if (ImGui::BeginTable("move items table", 3, ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoBordersInBody)) {
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
-                    if (ImGui::Button("del")) to_del = i, apply = true;
+
+                    ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0, 0.6f, 0.6f));
+                    if (ImGui::Button("X")) to_del = i, apply = true;
+                    ImGui::PopStyleColor();
                     ImGui::TableSetColumnIndex(2);
-                    ImGuiStyle style = ImGui::GetStyle();
 
                     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, style.ItemSpacing.y));
                     float widthNeeded = style.FontSizeBase * style.FontScaleMain * 2 + style.FramePadding.x * 4.f;;
@@ -206,29 +243,44 @@ void mainOverlay(void) {
                 apply |= (ImGui::RadioButton("exponential soft", (int*)&((*shapes)[i].min_type), 2));
 
                 ImGui::SeparatorText("Soft min coeffitient");
-                apply |= (ImGui::DragFloat("k", &((*shapes)[i].min_coef), 0.01, 0, 1, "%.3f"));
+                apply |= (ImGui::DragFloat("k", &((*shapes)[i].min_coef), 0.01f, 0, 1, "%.3f"));
 
                 ImGui::SeparatorText("Shape parameters");
 
                 if ((*shapes)[i].type != sindexes::PLANE)
-                    apply |= (ImGui::DragFloat3("center", glm::value_ptr((*shapes)[i].data.center), 0.1, -1000, 1000, "%.2f", ImGuiSliderFlags_ColorMarkers));
+                    apply |= (ImGui::DragFloat3("center", glm::value_ptr((*shapes)[i].data.center), 0.1f, -1000, 1000, "%.2f", ImGuiSliderFlags_ColorMarkers));
+
+                if ((*shapes)[i].type != sindexes::PLANE && (*shapes)[i].type != sindexes::SPHERE) {
+                    static vec4 rotation_buffer(0, 1, 0, 0);
+
+                    ImGui::Text("");
+
+                    apply |= (ImGui::DragFloat3("rotation axis", glm::value_ptr(rotation_buffer), 0.1f, -10, 10, "%.2f", ImGuiSliderFlags_ColorMarkers));
+                    apply |= (ImGui::DragFloat("angle", glm::value_ptr(rotation_buffer) + 3, 1, -180, 180, "%.2f"));
+
+                    if (apply && (rotation_buffer.x != 0 || rotation_buffer.y != 0 || rotation_buffer.z != 0))
+                        (*shapes)[i].rotation = vec4(normalize(vec3(rotation_buffer)), radians(rotation_buffer.w));
+
+                    ImGui::Text("");
+                }
 
                 if ((*shapes)[i].type == sindexes::SPHERE || (*shapes)[i].type == sindexes::TORUS)
-                    apply |= (ImGui::DragFloat("radius", &((*shapes)[i].data.r), 0.01, 0, 100, "%.3f"));
+                    apply |= (ImGui::DragFloat("radius", &((*shapes)[i].data.r), 0.01f, 0, 100, "%.3f"));
 
                 if ((*shapes)[i].type == sindexes::PLANE) {
-                    apply |= (ImGui::DragFloat3("normal", glm::value_ptr((*shapes)[i].data.N), 0.1, -1000, 1000, "%.2f", ImGuiSliderFlags_ColorMarkers));
-                    apply |= (ImGui::DragFloat("D", &((*shapes)[i].data.D), 0.01, -1000, 1000, "%.3f"));
+                    apply |= (ImGui::DragFloat3("normal", glm::value_ptr((*shapes)[i].data.N), 0.1f, -1000, 1000, "%.2f", ImGuiSliderFlags_ColorMarkers));
+                    apply |= (ImGui::DragFloat("D", &((*shapes)[i].data.D), 0.01f, -1000, 1000, "%.3f"));
                 }
 
                 if ((*shapes)[i].type == sindexes::BOX || (*shapes)[i].type == sindexes::ELLIPSOID)
-                    apply |= (ImGui::DragFloat3("sides", glm::value_ptr((*shapes)[i].data.sides), 0.1, 0, 100, "%.2f", ImGuiSliderFlags_ColorMarkers));
+                    apply |= (ImGui::DragFloat3("sides", glm::value_ptr((*shapes)[i].data.sides), 0.1f, 0, 100, "%.2f", ImGuiSliderFlags_ColorMarkers));
 
                 if ((*shapes)[i].type == sindexes::TORUS)
-                    apply |= (ImGui::DragFloat("minor radius", &((*shapes)[i].data.R), 0.01, 0, 100, "%.3f"));
+                    apply |= (ImGui::DragFloat("minor radius", &((*shapes)[i].data.R), 0.01f, 0, 100, "%.3f"));
 
                 ImGui::SeparatorText("color");
                 apply |= (ImGui::ColorEdit3("##", glm::value_ptr((*shapes)[i].color), 0));
+                apply |= (ImGui::DragFloat("##d", glm::value_ptr((*shapes)[i].color) + 3, 0.01f, 0, 1, "%.2f"));
                 ImGui::TreePop();
             }
             ImGui::PopID();

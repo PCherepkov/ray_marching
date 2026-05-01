@@ -9,7 +9,7 @@
 class shader {
 public:
     enum uniform_types {
-        VEC3, IVEC2, MAT4, FLT, UINT
+        VEC3, IVEC2, MAT4, FLT, UINT, BOOL
     };
 
     string path;
@@ -40,6 +40,8 @@ public:
             glUniform1f(loc, *(flt*)data);
             break;
         case UINT:
+            glUniform1ui(loc, *(uint*)data);
+        case BOOL:
             glUniform1ui(loc, *(uint*)data);
         default:
             break;

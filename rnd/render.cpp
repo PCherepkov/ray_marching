@@ -9,6 +9,12 @@ void renderInit(GLFWwindow* window) {
 
 	float t = (float)clock() / CLOCKS_PER_SEC;
 	ani.shd.SetUniform("time", shader::FLT, &t);
+	ani.shd.SetUniform("bgColor", shader::VEC3, (void*)glm::value_ptr(vec3(0.47, 0.64, 0.96)));
+
+	uint correct = 1;
+	ani.shd.SetUniform("colorCorrection", shader::BOOL, &correct);
+	float fog_coeff = 0.0125f;
+	ani.shd.SetUniform("fog_coeff", shader::FLT, &fog_coeff);
 
 	ivec2 resolution = ivec2(ani.w, ani.h);
 	ani.shd.SetUniform("ScreenResolution", shader::IVEC2, &(resolution));

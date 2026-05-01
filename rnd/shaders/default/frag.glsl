@@ -11,6 +11,10 @@ uniform vec3 cameraDir;
 uniform vec3 cameraRight;
 uniform vec3 cameraUp;
 
+uniform vec3 bgColor;
+uniform bool colorCorrection;
+uniform float fog_coeff;
+
 uniform uint shapes_num;
 
 
@@ -50,13 +54,14 @@ struct descr
 
 struct shape
 {
-    vec3 color;
+    vec4 color;
     uint type;
     uint min_type;
     float min_coef;
     uint mode;
+    vec4 rotation;
 
-    uint padding;
+    // uint padding;
 
     descr data;
 };
@@ -65,6 +70,23 @@ layout(binding = 3) coherent restrict buffer mySSBO
 {
     shape shapes[];
 };
+
+mat4 rotationMatrix(vec3 axis, float angle) {
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+    
+    return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                0.0,                                0.0,                                0.0,                                1.0);
+}
+
+vec3 rotate(vec3 v, vec3 axis, float angle) {
+	mat4 m = rotationMatrix(axis, angle);
+	return (m * vec4(v, 1.0)).xyz;
+}
 
 
 float ExpSMin(float a, float b, float k)
@@ -113,7 +135,9 @@ float plane_sdf(shape S, vec3 p)
 
 float box_sdf(shape S, vec3 p)
 {
-    vec3 q = abs(p - S.data.center) - S.data.sides;
+    vec3 pos = p - S.data.center;
+    if (S.rotation.w != 0) pos = rotate(pos, S.rotation.xyz, S.rotation.w);
+    vec3 q = abs(pos) - S.data.sides;
     return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
 }
 
@@ -121,6 +145,7 @@ float box_sdf(shape S, vec3 p)
 float torus_sdf(shape S, vec3 p)
 {
     vec3 pos = p - S.data.center;
+    if (S.rotation.w != 0) pos = rotate(pos, S.rotation.xyz, S.rotation.w);
     vec2 q = vec2(length(pos.xz) - S.data.r, pos.y);
     return length(q) - S.data.R;
 }
@@ -129,6 +154,7 @@ float torus_sdf(shape S, vec3 p)
 float ellipsoid_sdf(shape S, vec3 p)
 {
     vec3 pos = p - S.data.center;
+    if (S.rotation.w != 0) pos = rotate(pos, S.rotation.xyz, S.rotation.w);
     float k0 = length(pos / S.data.sides);
     float k1 = length(pos / (S.data.sides * S.data.sides));
     return k0 * (k0 - 1.0) / k1;
@@ -137,12 +163,16 @@ float ellipsoid_sdf(shape S, vec3 p)
 
 float cylinder_sdf(shape S, vec3 p)
 {
+    vec3 pos = p - S.data.center;
+    if (S.rotation.w != 0) pos = rotate(pos, S.rotation.xyz, S.rotation.w);
     return inf;
 }
 
 
 float cone_sdf(shape S, vec3 p)
 {
+    vec3 pos = p - S.data.center;
+    if (S.rotation.w != 0) pos = rotate(pos, S.rotation.xyz, S.rotation.w);
     return inf;
 }
 
@@ -208,20 +238,33 @@ vec2 SDF(vec3 p)
 }
 
 
-vec3 color_mix(vec3 p, float min_coef)
+vec3 color_mix(vec3 p)
 {
     vec3 res = vec3(0);
     float div = 0.0;
+    float mdist_zero = inf, mdist = inf;
+    vec3 color_zero;
 
     for (int i = 0; i < shapes_num; i++)
     {
         shape s = shapes[i];
         float dist = GenSDF(s, p);
 
-        float coef = exp(-dist * 6.0 / s.min_coef * 0.16);
-        res += s.color * coef;
+        if (s.color.w == 0.0 && dist < mdist_zero) {
+            mdist_zero = dist;
+            color_zero = s.color.xyz;
+            continue;
+        }
+
+        if (dist < mdist) mdist = dist;
+
+        float coef = exp(-dist * 6.0 / s.color.w * 0.16);
+        res += s.color.xyz * coef;
         div += coef;
     }
+
+    if (mdist_zero < mdist)
+        return color_zero;
 
     div = max(div, 1.0);
     return (res / div);
@@ -256,15 +299,15 @@ vec3 reflVec(vec3 v, vec3 r)
 
 vec3 shade(shape S, vec3 p, vec3 N)
 {
-    vec3 res = S.color;
+    vec3 res = S.color.xyz;
     vec3 LightPos = normalize(vec3(0, 4, 10));
     vec3 LightColor = vec3(1);
     float diff = max(dot(N, LightPos), 0.0);
     vec3 diffuse = LightColor * diff;
     float amb = 0.1;
     vec3 ambient = amb * LightColor;
-    if (S.min_coef <= 0) return (diffuse + ambient) * S.color;
-    res = (diffuse + ambient) * color_mix(p, S.min_coef);
+    if (S.color.w <= 0) return (diffuse + ambient) * S.color.xyz;
+    res = (diffuse + ambient) * color_mix(p);
     return res;
 }
 
@@ -277,7 +320,6 @@ void main()
     int pxlY = int((FragPos.y + 1) * 0.5 * h);
     float pxlSize = FragPos.x / w;
   
-    vec3 bgColor = vec3(0.47, 0.64, 0.96);
     vec3 ResColor = bgColor;
     vec3 start = cameraPos;
     vec3 dir = normalize(pxlpos.x * cameraRight + pxlpos.y * cameraUp + cameraDir * 1.0);
@@ -303,16 +345,21 @@ void main()
     
     if (rstep <= tol)
     {
-        ResColor = s.color;
+        ResColor = s.color.xyz;
         ResColor = norm;
         ResColor = shade(s, pos, norm);
-        float fog = 1.0 - exp(-t*0.0125);
+        // float fog = 1.0 - exp(-t*0.0125);
+        float fog = 1.0 - exp(-t*fog_coeff);
         if (t > 0) ResColor = mix(ResColor, bgColor, fog);
     }
 
-    ResColor = pow(ResColor, vec3(0.4545));
-    ResColor *= 0.9;
-    ResColor = clamp(ResColor, 0, 1);
-    ResColor = ResColor * ResColor * (3.0 - 2.0*ResColor);
+
+    if (colorCorrection) {
+        ResColor = pow(ResColor, vec3(0.4545));
+        ResColor *= 0.9;
+        ResColor = clamp(ResColor, 0, 1);
+        ResColor = ResColor * ResColor * (3.0 - 2.0*ResColor);
+    }
+
     FragColor = vec4(ResColor, 0.0);
 }

@@ -81,9 +81,8 @@ void anim::applyShapes(void) {
 
 
 void anim::keyCallback(GLFWwindow* wnd, int key, int scancode, int action, int mods) {
-	if (key == GLFW_KEY_ENTER && action == GLFW_PRESS) {
+	if (key == GLFW_KEY_ENTER && action == GLFW_PRESS && glfwGetKey(ani.window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
 		shape s;
-		s.color = vec3(0.3, 0.47, 0.8);
 		s.type = sindexes::SPHERE;
 		s.data.center = ani.cam.Loc;
 		s.data.r = 1.0;
