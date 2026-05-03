@@ -43,6 +43,9 @@
     <Filter Include="Source Files\render\ui">
       <UniqueIdentifier>{ade0e3c9-0523-4259-8b90-cc1fc71d8e15}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\render\shaders\postproc">
+      <UniqueIdentifier>{a50ecdbf-54d6-403b-816e-5a58b6130937}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -141,6 +144,12 @@
     </None>
     <None Include="rnd\shaders\default\vert.glsl">
       <Filter>Source Files\render\shaders\default</Filter>
+    </None>
+    <None Include="rnd\shaders\postproc\frag.glsl">
+      <Filter>Source Files\render\shaders\postproc</Filter>
+    </None>
+    <None Include="rnd\shaders\postproc\vert.glsl">
+      <Filter>Source Files\render\shaders\postproc</Filter>
     </None>
   </ItemGroup>
 </Project>

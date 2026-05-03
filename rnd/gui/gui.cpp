@@ -130,20 +130,60 @@ void mainTopBar(void) {
 
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            ImGui::Text("Do color correction");
+            ImGui::Text("Color correction");
             ImGui::TableSetColumnIndex(1);
             static bool colorCorrect = 1;
-            if (ImGui::Checkbox("##1", &colorCorrect)) {
-                // colorCorrect = 1 - colorCorrect;
-                ani.setColorCorrection(colorCorrect);
+            if (ImGui::Checkbox("##1", &colorCorrect)) ani.setColorCorrection(colorCorrect);
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Fog density");
+            ImGui::TableSetColumnIndex(1);
+            static float fog_coeff = 0.0125f;
+            if (ImGui::DragFloat("##2", &fog_coeff, 0.0001f, 0, 1, "%.4f")) {
+                fog_coeff = (fog_coeff >= 0) ? fog_coeff : 0;
+                ani.setFogDensity(fog_coeff);
             }
 
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            ImGui::Text("Fog");
+            ImGui::Text("Shade");
             ImGui::TableSetColumnIndex(1);
-            static float fog_coeff = 0.0125f;
-            if (ImGui::DragFloat("##2", &fog_coeff, 0.0001f, 0, 1, "%.4f")) ani.setFogDensity(fog_coeff);
+            static bool doShade = 1;
+            if (ImGui::Checkbox("##3", &doShade)) ani.setDoShade(doShade);
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Anti-alisaing");
+            ImGui::TableSetColumnIndex(1);
+            static bool doAA = 1;
+            if (ImGui::Checkbox("##4", &doAA)) ani.setDoAA(doAA);
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Down-scaling");
+            ImGui::TableSetColumnIndex(1);
+            if (ImGui::DragFloat("##5", &ani.scale, 0.5f, 0.5, 16, "%.1f")) {
+                ani.scale = clamp(ani.scale, 0.5f, 16.f);
+                ani.createFrameBuffer();
+            }
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Filtering");
+            ImGui::TableSetColumnIndex(1);
+            const char* const list[2] = {"Nearest", "Linear"};
+            static const char* cur = list[0];
+            if (ImGui::BeginCombo("##6", cur)) {
+                static bool nearest = (cur[0] == 'N'), linear = !nearest;
+                if (ImGui::Selectable("Nearest", &nearest, 2)) {
+                    cur = list[0];
+                }
+                if (ImGui::Selectable("Linear", &linear, 2)) {
+                    cur = list[1];
+                }
+                ImGui::EndCombo();
+            }
 
             ImGui::EndTable();
             ImGui::EndMenu();
@@ -172,7 +212,7 @@ void mainOverlay(void) {
     window_pos_pivot.x = (location & 1) ? 1.0f : 0.0f;
     window_pos_pivot.y = (location & 2) ? 1.0f : 0.0f;
     ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-    window_flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize;
+    window_flags |= ImGuiWindowFlags_NoMove;
 
     ImGui::SetNextWindowBgAlpha(0.9f);
 
@@ -278,9 +318,10 @@ void mainOverlay(void) {
                 if ((*shapes)[i].type == sindexes::TORUS)
                     apply |= (ImGui::DragFloat("minor radius", &((*shapes)[i].data.R), 0.01f, 0, 100, "%.3f"));
 
-                ImGui::SeparatorText("color");
-                apply |= (ImGui::ColorEdit3("##", glm::value_ptr((*shapes)[i].color), 0));
-                apply |= (ImGui::DragFloat("##d", glm::value_ptr((*shapes)[i].color) + 3, 0.01f, 0, 1, "%.2f"));
+                ImGui::SeparatorText("Material");
+                apply |= (ImGui::ColorEdit3("color", glm::value_ptr((*shapes)[i].color), 0));
+                apply |= (ImGui::DragFloat("spread", glm::value_ptr((*shapes)[i].color) + 3, 0.01f, 0, 1, "%.2f"));
+                apply |= (ImGui::DragFloat("specular", glm::value_ptr((*shapes)[i].spec), 1.0f, 0, 1000, "%.0f"));
                 ImGui::TreePop();
             }
             ImGui::PopID();

@@ -167,3 +167,36 @@ void anim::loadShapes(string fpath) {
 
 	ani.applyShapes();
 }
+
+
+void anim::createFrameBuffer(void) {
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+	if (colorbuffer != 0) {
+		glDeleteTextures(1, &colorbuffer);
+	}
+
+	// generate texture
+	glGenTextures(1, &colorbuffer);
+	glBindTexture(GL_TEXTURE_2D, colorbuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w / ani.scale, h / ani.scale, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// attach it to currently bound framebuffer object
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorbuffer, 0);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	ani.shd.SetUniform("scale", shader::FLT, &ani.scale);
+	ani.postproc.SetUniform("scale", shader::FLT, &ani.scale);
+
+	if (ani.scale < 1)
+		glViewport(0, 0, w / ani.scale, h / ani.scale);
+	else
+		glViewport(0, 0, w, h);
+}

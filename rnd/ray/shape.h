@@ -42,13 +42,15 @@ struct descr
 struct shape
 {
 	vec4 color = vec4(0.3, 0.47, 0.8, 0.16);
+
+	vec4 spec = vec4(0);
+
 	uint type = 0;
 	uint min_type = 0;
 	float min_coef = 0.16f;
 	uint mode = 0;
-	vec4 rotation = vec4(0, 1, 0, 0);
 
-	// uint padding;
+	vec4 rotation = vec4(0, 1, 0, 0);
 
 	descr data;
 };
@@ -56,6 +58,11 @@ struct shape
 
 string descrToString(uint type, descr& D);
 descr stringToDescr(uint type, string str);
+
+class object {
+	shape S;
+	string name;
+};
 
 
 

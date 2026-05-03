@@ -11,7 +11,6 @@ class anim;
 
 extern anim ani;
 
-
 class anim {
 	bool update;
 	vector<shape> shapes;
@@ -22,7 +21,9 @@ public:
 	double x, y, scroll;
 	bool is_fullscreen, saved = false;
 	camera cam;
-	shader shd;
+	shader shd, postproc;
+	uint framebuffer, colorbuffer = 0;
+	float scale = 1;
 	float Delta;
 	string path = "";
 
@@ -38,6 +39,8 @@ public:
 	~anim() {
 	}
 
+	void createFrameBuffer(void);
+
 	void processInput();
 	static void keyCallback(GLFWwindow* wnd, int key, int scancode, int action, int mods);
 
@@ -51,6 +54,8 @@ public:
 
 	void setBackgroundColor(vec3& color) { shd.SetUniform("bgColor", shader::VEC3, (void*)glm::value_ptr(color)); }
 	void setColorCorrection(uint flag) { shd.SetUniform("colorCorrection", shader::BOOL, &flag); }
+	void setDoShade(uint flag) { shd.SetUniform("doShade", shader::BOOL, &flag); }
+	void setDoAA(uint flag) { postproc.SetUniform("doAA", shader::BOOL, &flag); }
 	void setFogDensity(float coeff) { shd.SetUniform("fog_coeff", shader::FLT, &coeff); }
 
 	size_t numOfShapes(void) { return shapes.size(); }

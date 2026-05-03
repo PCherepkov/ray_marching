@@ -5,6 +5,7 @@ out vec4 FragColor;
 
 uniform float time;
 uniform ivec2 ScreenResolution;
+uniform float scale;
 
 uniform vec3 cameraPos;
 uniform vec3 cameraDir;
@@ -13,6 +14,8 @@ uniform vec3 cameraUp;
 
 uniform vec3 bgColor;
 uniform bool colorCorrection;
+uniform bool doShade;
+uniform bool shadow;
 uniform float fog_coeff;
 
 uniform uint shapes_num;
@@ -55,13 +58,15 @@ struct descr
 struct shape
 {
     vec4 color;
+
+    vec4 spec;
+
     uint type;
     uint min_type;
     float min_coef;
     uint mode;
-    vec4 rotation;
 
-    // uint padding;
+    vec4 rotation;
 
     descr data;
 };
@@ -302,12 +307,22 @@ vec3 shade(shape S, vec3 p, vec3 N)
     vec3 res = S.color.xyz;
     vec3 LightPos = normalize(vec3(0, 4, 10));
     vec3 LightColor = vec3(1);
+    vec3 viewDir = normalize(p - cameraPos);
+
+    if (abs(dot(viewDir, N)) < tol * 2) return bgColor;
+
     float diff = max(dot(N, LightPos), 0.0);
     vec3 diffuse = LightColor * diff;
+
     float amb = 0.1;
     vec3 ambient = amb * LightColor;
-    if (S.color.w <= 0) return (diffuse + ambient) * S.color.xyz;
-    res = (diffuse + ambient) * color_mix(p);
+
+    vec3 reflectDir = reflect(LightPos, N);
+    float spec = (S.spec.x == 0) ? 0 : pow(max(dot(viewDir, reflectDir), 0), S.spec.x);
+    vec3 specular = spec * LightColor;
+
+    if (S.color.w <= 0) return (diffuse + ambient + specular) * S.color.xyz;
+    res = (diffuse + ambient + specular) * color_mix(p);
     return res;
 }
 
@@ -332,8 +347,8 @@ void main()
     while (abs(rstep) > tol && t < inf && t >= 0 && steps < MAX_STEPS)
     {
         vec2 sdf_res = SDF(pos);
-        obj = int(sdf_res.y);
 
+        obj = int(sdf_res.y);
         rstep = sdf_res.x;
         t += rstep;
         pos += dir * rstep;
@@ -341,17 +356,19 @@ void main()
     }
 
     shape s = shapes[obj];
-    vec3 norm = Normal(pos);
     
     if (rstep <= tol)
     {
         ResColor = s.color.xyz;
-        ResColor = norm;
-        ResColor = shade(s, pos, norm);
-        // float fog = 1.0 - exp(-t*0.0125);
-        float fog = 1.0 - exp(-t*fog_coeff);
-        if (t > 0) ResColor = mix(ResColor, bgColor, fog);
+        // ResColor = norm;
+        if (doShade) {
+            vec3 norm = Normal(pos);
+            ResColor = shade(s, pos, norm);
+        }
     }
+
+    // fog
+    if (doShade && t > 0) ResColor = mix(ResColor, bgColor, (1.0 - exp(-t*fog_coeff)) );
 
 
     if (colorCorrection) {

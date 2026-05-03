@@ -42,7 +42,8 @@ void Reshape(GLFWwindow* window, int w, int h) {
     ani.h = h;
     ivec2 resolution = ivec2(w, h);
     ani.shd.SetUniform("ScreenResolution", shader::IVEC2, &(resolution));
-    glViewport(0, 0, w, h);
+    ani.postproc.SetUniform("ScreenResolution", shader::IVEC2, &(resolution));
+    ani.createFrameBuffer();
 }
 
 
@@ -76,6 +77,7 @@ int main() {
 
     float time = 0;
 
+ 
     while (!glfwWindowShouldClose(ani.window)) {
         glfwPollEvents();
 
@@ -86,7 +88,7 @@ int main() {
         ani.processInput();
         render(ani.window);
 
-        // ImGui::ShowDemoWindow();
+        ImGui::ShowDemoWindow();
         
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

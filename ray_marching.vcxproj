@@ -183,6 +183,8 @@
   <ItemGroup>
     <None Include="rnd\shaders\default\frag.glsl" />
     <None Include="rnd\shaders\default\vert.glsl" />
+    <None Include="rnd\shaders\postproc\frag.glsl" />
+    <None Include="rnd\shaders\postproc\vert.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
