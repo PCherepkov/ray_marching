@@ -20,6 +20,8 @@ uniform float fog_coeff;
 
 uniform uint shapes_num;
 
+#define PI 3.1415926538
+
 
 float tol = 1e-3;
 float inf = 3e2;
@@ -59,7 +61,8 @@ struct shape
 {
     vec4 color;
 
-    vec4 spec;
+    vec3 spec;
+    float transparency;
 
     uint type;
     uint min_type;
@@ -128,6 +131,7 @@ float GenMin(float a, float b, uint min_type, float min_coef)
 
 float sphere_sdf(shape S, vec3 p)
 {
+    // return length(cos(S.data.center - p) * sin(S.data.center - p)) - S.data.r;
     return length(S.data.center - p) - S.data.r;
 }
 
@@ -160,8 +164,8 @@ float ellipsoid_sdf(shape S, vec3 p)
 {
     vec3 pos = p - S.data.center;
     if (S.rotation.w != 0) pos = rotate(pos, S.rotation.xyz, S.rotation.w);
-    float k0 = length(pos / S.data.sides);
-    float k1 = length(pos / (S.data.sides * S.data.sides));
+    float k0 = length(pos / max(S.data.sides, vec3(tol)));
+    float k1 = length(pos / max(S.data.sides * S.data.sides, vec3(tol)));
     return k0 * (k0 - 1.0) / k1;
 }
 
@@ -243,12 +247,12 @@ vec2 SDF(vec3 p)
 }
 
 
-vec3 color_mix(vec3 p)
+vec4 color_mix(vec3 p)
 {
-    vec3 res = vec3(0);
+    vec4 res = vec4(0);
     float div = 0.0;
     float mdist_zero = inf, mdist = inf;
-    vec3 color_zero;
+    vec4 color_zero;
 
     for (int i = 0; i < shapes_num; i++)
     {
@@ -257,18 +261,18 @@ vec3 color_mix(vec3 p)
 
         if (s.color.w == 0.0 && dist < mdist_zero) {
             mdist_zero = dist;
-            color_zero = s.color.xyz;
+            color_zero = vec4(s.color.xyz, s.spec);
             continue;
         }
 
         if (dist < mdist) mdist = dist;
 
         float coef = exp(-dist * 6.0 / s.color.w * 0.16);
-        res += s.color.xyz * coef;
+        res += vec4(s.color.xyz * coef, s.spec.x * coef);
         div += coef;
     }
 
-    if (mdist_zero < mdist)
+    if (mdist_zero < tol)
         return color_zero;
 
     div = max(div, 1.0);
@@ -322,9 +326,15 @@ vec3 shade(shape S, vec3 p, vec3 N)
     vec3 specular = spec * LightColor;
 
     if (S.color.w <= 0) return (diffuse + ambient + specular) * S.color.xyz;
-    res = (diffuse + ambient + specular) * color_mix(p);
+    vec4 mixed = color_mix(p);
+    // if (mixed.a < 1) mixed.a = (mixed.a <= 0) ? 0 : mixed.a;
+    // spec = (mixed.a == 0) ? 0 : pow(max(dot(viewDir, reflectDir), 0), mixed.a);
+    // specular = spec * LightColor;
+    res = (diffuse + ambient + specular) * mixed.rgb;
     return res;
 }
+
+vec3 toLuma = vec3(0.299, 0.587, 0.114);
 
 
 void main()
@@ -344,19 +354,49 @@ void main()
     vec3 pos = start;
     uint steps = 0;
 
+    float density = 0;
+    float div = 0;
+    vec3 volume = vec3(0);
+
     while (abs(rstep) > tol && t < inf && t >= 0 && steps < MAX_STEPS)
     {
         vec2 sdf_res = SDF(pos);
 
         obj = int(sdf_res.y);
         rstep = sdf_res.x;
-        t += rstep;
-        pos += dir * rstep;
+        if (shapes[obj].transparency > 0 && rstep < 0) {
+            rstep *= -1;
+            // density += (shapes[obj].mode == SUB) ? 0 : rstep * shapes[obj].transparency;
+            div += rstep * (1/(shapes[obj].transparency) - 1);
+        }
+        if (shapes[obj].transparency > 0 && abs(rstep) < tol) {
+            rstep += tol * 2;
+            volume = mix(volume, shapes[obj].color.xyz, (div + density == 0) ? 0 : 1 - density/(density + div) );
+            density += div;
+            div = 0;
+            // volume = vec3(0,1,0);
+        }
+
+        if (false && shapes[obj].mode == SUB && abs(rstep) < tol) {
+            // rstep += 2 * tol;
+            vec2 next_res = SDF(pos + dir * abs(rstep + tol * 2)); 
+            if (shapes[int(next_res.y)].transparency > 0 || shapes[int(next_res.y)].mode == SUB) {
+                FragColor = vec4(1, 0, 0, 1);
+                return;
+                rstep += 2 * tol;
+            }
+
+            // FragColor = vec4(rstep / tol / 2 + 0.5, 0, 0, 1);
+            // return;
+        }
+
+        t += abs(rstep);
+        pos += dir * abs(rstep);
         steps += 1;
     }
 
     shape s = shapes[obj];
-    
+   
     if (rstep <= tol)
     {
         ResColor = s.color.xyz;
@@ -370,6 +410,8 @@ void main()
     // fog
     if (doShade && t > 0) ResColor = mix(ResColor, bgColor, (1.0 - exp(-t*fog_coeff)) );
 
+    if (density > 0)
+        ResColor = mix(ResColor, volume, 1 - exp(-density));
 
     if (colorCorrection) {
         ResColor = pow(ResColor, vec3(0.4545));

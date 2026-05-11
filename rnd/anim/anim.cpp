@@ -126,9 +126,11 @@ void anim::saveShapes(string fpath) {
 	for (size_t i = 0; i < shapes.size(); i++) {
 		fout << shapes[i].type << ',';
 		fout << shapes[i].mode << ',';
-		fout << shapes[i].color.r << ',' << shapes[i].color.g << ',' << shapes[i].color.b << ',';
+		fout << shapes[i].color.r << ',' << shapes[i].color.g << ',' << shapes[i].color.b << ',' << shapes[i].color.a << ',';
+		fout << shapes[i].spec.x << ',';
 		fout << shapes[i].min_type << ',';
 		fout << shapes[i].min_coef << ',';
+		fout << shapes[i].rotation.x << ',' << shapes[i].rotation.y << ',' << shapes[i].rotation.z << ',' << shapes[i].rotation.w << ',';
 		fout << descrToString(shapes[i].type, shapes[i].data) << '\n';
 	}
 
@@ -157,9 +159,17 @@ void anim::loadShapes(string fpath) {
 		S.color.r = stof(buffer.substr(start, end - start)), start = end + 1, end = buffer.find(",", start);
 		S.color.g = stof(buffer.substr(start, end - start)), start = end + 1, end = buffer.find(",", start);
 		S.color.b = stof(buffer.substr(start, end - start)), start = end + 1, end = buffer.find(",", start);
+		S.color.a = stof(buffer.substr(start, end - start)), start = end + 1, end = buffer.find(",", start);
+
+		S.spec.x = stof(buffer.substr(start, end - start)), start = end + 1, end = buffer.find(",", start);
 
 		S.min_type = stoi(buffer.substr(start, end - start)), start = end + 1, end = buffer.find(",", start);
-		S.min_coef = stof(buffer.substr(start, end - start)), start = end + 1, end = buffer.length();
+		S.min_coef = stof(buffer.substr(start, end - start)), start = end + 1, end = buffer.find(",", start);
+
+		S.rotation.x = stof(buffer.substr(start, end - start)), start = end + 1, end = buffer.find(",", start);
+		S.rotation.y = stof(buffer.substr(start, end - start)), start = end + 1, end = buffer.find(",", start);
+		S.rotation.z = stof(buffer.substr(start, end - start)), start = end + 1, end = buffer.find(",", start);
+		S.rotation.w = stof(buffer.substr(start, end - start)), start = end + 1, end = buffer.length();
 
 		S.data = stringToDescr(S.type, buffer.substr(start, end - start));
 		ani.addShape(S);
@@ -170,7 +180,11 @@ void anim::loadShapes(string fpath) {
 
 
 void anim::createFrameBuffer(void) {
-	glGenFramebuffers(1, &framebuffer);
+	if (scale < 0.25) return;
+
+	if (framebuffer == 0) {
+		glGenFramebuffers(1, &framebuffer);
+	}
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
 	if (colorbuffer != 0) {
@@ -180,10 +194,9 @@ void anim::createFrameBuffer(void) {
 	// generate texture
 	glGenTextures(1, &colorbuffer);
 	glBindTexture(GL_TEXTURE_2D, colorbuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w / ani.scale, h / ani.scale, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w / scale, h / scale, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filtering);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filtering);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// attach it to currently bound framebuffer object
@@ -192,11 +205,11 @@ void anim::createFrameBuffer(void) {
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	ani.shd.SetUniform("scale", shader::FLT, &ani.scale);
-	ani.postproc.SetUniform("scale", shader::FLT, &ani.scale);
+	shd.SetUniform("scale", shader::FLT, &scale);
+	postproc.SetUniform("scale", shader::FLT, &scale);
 
-	if (ani.scale < 1)
-		glViewport(0, 0, w / ani.scale, h / ani.scale);
+	if (scale < 1)
+		glViewport(0, 0, w / scale, h / scale);
 	else
 		glViewport(0, 0, w, h);
 }

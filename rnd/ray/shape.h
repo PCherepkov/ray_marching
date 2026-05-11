@@ -43,7 +43,8 @@ struct shape
 {
 	vec4 color = vec4(0.3, 0.47, 0.8, 0.16);
 
-	vec4 spec = vec4(0);
+	vec3 spec = vec4(0);
+	float transparency = 0;
 
 	uint type = 0;
 	uint min_type = 0;

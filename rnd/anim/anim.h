@@ -22,8 +22,10 @@ public:
 	bool is_fullscreen, saved = false;
 	camera cam;
 	shader shd, postproc;
-	uint framebuffer, colorbuffer = 0;
+	uint framebuffer = 0, colorbuffer = 0;
 	float scale = 1;
+	uint filtering = GL_NEAREST;
+
 	float Delta;
 	string path = "";
 

@@ -1,6 +1,8 @@
 #include "gui.h"
 #include "../anim/anim.h"
 
+bool transparencyOption;
+
 
 void openScene(void) {
     cout << "Openning file...\n";
@@ -140,8 +142,8 @@ void mainTopBar(void) {
             ImGui::Text("Fog density");
             ImGui::TableSetColumnIndex(1);
             static float fog_coeff = 0.0125f;
-            if (ImGui::DragFloat("##2", &fog_coeff, 0.0001f, 0, 1, "%.4f")) {
-                fog_coeff = (fog_coeff >= 0) ? fog_coeff : 0;
+            if (ImGui::DragFloat("##2", &fog_coeff, 0.0001f, 0, 1, "%.4f", ImGuiSliderFlags_AlwaysClamp)) {
+                // fog_coeff = (fog_coeff >= 0) ? fog_coeff : 0;
                 ani.setFogDensity(fog_coeff);
             }
 
@@ -163,8 +165,8 @@ void mainTopBar(void) {
             ImGui::TableSetColumnIndex(0);
             ImGui::Text("Down-scaling");
             ImGui::TableSetColumnIndex(1);
-            if (ImGui::DragFloat("##5", &ani.scale, 0.5f, 0.5, 16, "%.1f")) {
-                ani.scale = clamp(ani.scale, 0.5f, 16.f);
+            if (ImGui::DragFloat("##5", &ani.scale, 0.5f, 0.5, 16, "%.1f", ImGuiSliderFlags_AlwaysClamp)) {
+                // ani.scale = clamp(ani.scale, 0.5f, 16.f);
                 ani.createFrameBuffer();
             }
 
@@ -178,12 +180,23 @@ void mainTopBar(void) {
                 static bool nearest = (cur[0] == 'N'), linear = !nearest;
                 if (ImGui::Selectable("Nearest", &nearest, 2)) {
                     cur = list[0];
+                    ani.filtering = GL_NEAREST;
+                    ani.createFrameBuffer();
                 }
                 if (ImGui::Selectable("Linear", &linear, 2)) {
                     cur = list[1];
+                    ani.filtering = GL_LINEAR;
+                    ani.createFrameBuffer();
                 }
                 ImGui::EndCombo();
             }
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Transparency");
+            ImGui::TableSetColumnIndex(1);
+
+            if (ImGui::Checkbox("##7", &transparencyOption)) ;
 
             ImGui::EndTable();
             ImGui::EndMenu();
@@ -218,7 +231,7 @@ void mainOverlay(void) {
 
     ImGui::SetNextWindowSize(ImVec2(0, viewport->WorkSize.y));
 
-    bool* p_open = 0;
+    static bool* p_open = 0;
 
     if (ImGui::Begin("Elements", p_open, window_flags))
     {
@@ -237,6 +250,8 @@ void mainOverlay(void) {
         size_t n = shapes->size();
         bool apply = false;
 
+        bool dostretch = !ImGui::IsWindowCollapsed();
+
         size_t to_del = -1;
         size_t to_up = -1;
         size_t to_down = -1;
@@ -245,8 +260,8 @@ void mainOverlay(void) {
             ImGui::PushID(i);
             ImVec2 node_pos = ImGui::GetCursorScreenPos();
 
-            if (ImGui::TreeNodeEx("##", ImGuiTreeNodeFlags_None, "%d %s", i + 1, snames[(*shapes)[i].type].c_str())) {
-                if (ImGui::BeginTable("move items table", 3, ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoBordersInBody)) {
+            if (ImGui::TreeNodeEx("##", ImGuiTreeNodeFlags_Framed, "%d %s", i + 1, snames[(*shapes)[i].type].c_str())) {
+                if (ImGui::BeginTable("move items table", 3, ImGuiTableFlags_SizingStretchSame * dostretch | ImGuiTableFlags_NoBordersInBody)) {
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
 
@@ -295,11 +310,8 @@ void mainOverlay(void) {
 
                     ImGui::Text("");
 
-                    apply |= (ImGui::DragFloat3("rotation axis", glm::value_ptr(rotation_buffer), 0.1f, -10, 10, "%.2f", ImGuiSliderFlags_ColorMarkers));
-                    apply |= (ImGui::DragFloat("angle", glm::value_ptr(rotation_buffer) + 3, 1, -180, 180, "%.2f"));
-
-                    if (apply && (rotation_buffer.x != 0 || rotation_buffer.y != 0 || rotation_buffer.z != 0))
-                        (*shapes)[i].rotation = vec4(normalize(vec3(rotation_buffer)), radians(rotation_buffer.w));
+                    apply |= (ImGui::DragFloat3("rotation axis", glm::value_ptr((*shapes)[i].rotation), 0.1f, -10, 10, "%.2f", ImGuiSliderFlags_ColorMarkers));
+                    apply |= (ImGui::SliderAngle("angle", glm::value_ptr((*shapes)[i].rotation) + 3, -180, 180, "%0.1f deg")); // ImGuiSliderFlags_WrapAround
 
                     ImGui::Text("");
                 }
@@ -322,6 +334,8 @@ void mainOverlay(void) {
                 apply |= (ImGui::ColorEdit3("color", glm::value_ptr((*shapes)[i].color), 0));
                 apply |= (ImGui::DragFloat("spread", glm::value_ptr((*shapes)[i].color) + 3, 0.01f, 0, 1, "%.2f"));
                 apply |= (ImGui::DragFloat("specular", glm::value_ptr((*shapes)[i].spec), 1.0f, 0, 1000, "%.0f"));
+                if (transparencyOption)
+                    apply |= (ImGui::DragFloat("transparency", &((*shapes)[i].transparency), 0.05f, 0.f, 1.f, "%.3f", ImGuiSliderFlags_AlwaysClamp));
                 ImGui::TreePop();
             }
             ImGui::PopID();
