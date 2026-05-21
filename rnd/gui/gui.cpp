@@ -119,7 +119,7 @@ void helpInfo(void) {
 
         ImGui::TableNextRow();
         ImGui::TableSetColumnIndex(0);
-        ImGui::Text("D");
+        ImGui::Text("F");
         ImGui::TableSetColumnIndex(1);
         ImGui::Text("move down");
 
@@ -138,6 +138,8 @@ void helpInfo(void) {
         ImGui::EndTable();
     }
 
+    ImGui::Text(u8"Rotate the camera by holding left mouse button.");
+
     // ImGui::Text("Enter - place a unit sphere on top of the camera");
     
     ImGui::Separator();
@@ -146,15 +148,6 @@ void helpInfo(void) {
     ImGui::Text("Shapes in the scene");
     ImGui::PopFont();
     ImGui::Separator();
-
-    if (ImGui::BeginTable("camera controls", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame)) {
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        ImGui::Text("Elements");
-        ImGui::TableSetColumnIndex(1);
-
-        ImGui::EndTable();
-    }
 
     static int my_image_width = 0;
     static int my_image_height = 0;
@@ -169,10 +162,16 @@ void helpInfo(void) {
     // ImGui::Text("size = %d x %d", my_image_width, my_image_height);
     // ImGui::Image((ImTextureID)(intptr_t)my_image_texture, ImVec2(my_image_width, my_image_height));
 
-    ImGui::Text("\"Add shape\" button adds a shape to the scene");
-    ImGui::Text("Click on an element inside the list of shapes to expand the properties panel");
-    ImGui::Text("X - deletes the shape from the scene");
-    ImGui::Text("Arrows - deletes the shape from the scene");
+    ImGui::Text("\"Add shape\" button adds a shape to the scene.");
+    ImGui::Spacing();
+    ImGui::Text("Click on an element inside the list of shapes to expand the properties panel.");
+    ImGui::Text(u8" deletes the shape from the scene.");
+    ImGui::Text(u8" and  move the shape inside the scene hierarchy.");
+    ImGui::Separator();
+
+    ImGui::PushFont(NULL, style.FontSizeBase * 1.5f);
+    ImGui::Text(" ");
+    ImGui::PopFont();
     ImGui::Separator();
 
     ImGui::End();
@@ -348,9 +347,11 @@ void mainTopBar(void) {
             ImGui::SetNextItemWidth(-1);
             static float fontsz = 20;
             if (ImGui::DragFloat("##0", &fontsz, 0.1f, 0, 1000, "%.0f", ImGuiSliderFlags_AlwaysClamp)) {
-                ImGuiIO& io = ImGui::GetIO();
+                // ImGuiIO& io = ImGui::GetIO();
                 // io.Fonts->AddFontFromFileTTF("./fonts/Roboto-Medium.ttf", fontsz);
-                io.FontGlobalScale = (fontsz > 0) ? fontsz/20 : 1;
+                // io.FontGlobalScale = (fontsz > 0) ? fontsz/20 : 1;
+                ImGuiStyle& style = ImGui::GetStyle();
+                style.FontScaleMain = (fontsz > 0) ? fontsz / 20 : 1;
             }
 
             const char* const themes[2] = { "Light", "Dark" };
@@ -462,26 +463,32 @@ void mainOverlay(void) {
             ImGui::PushID(i);
             ImVec2 node_pos = ImGui::GetCursorScreenPos();
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
+            ImGui::SetNextItemWidth(-1);
 
             if (ImGui::TreeNodeEx("##", ImGuiTreeNodeFlags_Framed, "%d %s", i + 1, snames[(*shapes)[i].type].c_str())) {
-                ImGui::BeginTable("border", 1, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_Resizable);
+                ImGui::SetNextItemWidth(-1);
+                ImGui::BeginTable("border", 1, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingStretchSame);
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
                 ImGui::PushStyleVarY(ImGuiStyleVar_ItemSpacing, 0);
-                if (ImGui::BeginTable("move items table", 3, ImGuiTableFlags_SizingStretchSame * dostretch | ImGuiTableFlags_NoBordersInBody)) {
+                ImGui::SetNextItemWidth(-1);
+                if (ImGui::BeginTable("move items table", 3, ImGuiTableFlags_NoBordersInBody)) {
+                    ImGui::TableSetupColumn("##col1", ImGuiTableColumnFlags_WidthStretch, 0, 1);
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
 
                     ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0, 0.6f, 0.6f));
-                    if (ImGui::Button("X")) to_del = i, apply = true;
+                    if (ImGui::Button(u8"")) to_del = i, apply = true;
                     ImGui::PopStyleColor();
                     ImGui::TableSetColumnIndex(2);
 
-                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, style.ItemSpacing.y));
-                    float widthNeeded = style.FontSizeBase * style.FontScaleMain * 2 + style.FramePadding.x * 4.f;;
-                    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - widthNeeded);
-                    if (ImGui::ArrowButton("up", ImGuiDir_Up)) to_up = i, apply = true; ImGui::SameLine();
-                    if (ImGui::ArrowButton("down", ImGuiDir_Down)) to_down = i, apply = true; ImGui::SameLine();
+                    ImGui::PushStyleVarX(ImGuiStyleVar_ItemSpacing, 0);
+                    // float widthNeeded = style.FontSizeBase * style.FontScaleMain * 2 + style.FramePadding.x * 4.f;
+                    // ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - widthNeeded);
+                    ImGui::SetNextItemWidth(-1);
+                    if (ImGui::Button(u8"")) to_up = i, apply = true; ImGui::SameLine();
+                    ImGui::SetNextItemWidth(-1);
+                    if (ImGui::Button(u8"")) to_down = i, apply = true;
                     ImGui::PopStyleVar();
 
                     ImGui::EndTable();
@@ -501,13 +508,13 @@ void mainOverlay(void) {
                 apply |= (ImGui::RadioButton("subtraction", (int*)&((*shapes)[i].mode), 1)); ImGui::SameLine();
                 apply |= (ImGui::RadioButton("intersection", (int*)&((*shapes)[i].mode), 2));
 
-                ImGui::SeparatorText("Type of softening");
+                ImGui::SeparatorText("Softening");
                 apply |= (ImGui::RadioButton("No softening", (int*)&((*shapes)[i].min_type), 0)); ImGui::SameLine();
                 apply |= (ImGui::RadioButton("cubic", (int*)&((*shapes)[i].min_type), 1)); ImGui::SameLine();
                 apply |= (ImGui::RadioButton("exponential", (int*)&((*shapes)[i].min_type), 2));
 
-                ImGui::SeparatorText("Soft min coeffitient");
-                apply |= (ImGui::DragFloat("k", &((*shapes)[i].min_coef), 0.01f, 0, 1, "%.3f"));
+                // ImGui::SeparatorText("Soft min coeffitient");
+                apply |= (ImGui::DragFloat("strength", &((*shapes)[i].min_coef), 0.01f, 0, 1, "%.3f"));
 
                 ImGui::SeparatorText("Shape parameters");
 
