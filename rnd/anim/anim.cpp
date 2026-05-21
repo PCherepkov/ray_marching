@@ -53,7 +53,7 @@ void anim::processInput() {
 		rotX = rotate(mat4(1), (float)radians((newMX - x) / ani.w * 180), vec3(0, 1, 0));
 		cam.Dir = vec3(rotX * vec4(ani.cam.Dir, 1.0));
 		cam.Right = normalize(cross(ani.cam.Dir, vec3(0, 1, 0)));
-		rotY = rotate(mat4(1), (float)radians((newMY - y) / ani.w * 180), ani.cam.Right);
+		rotY = rotate(mat4(1), (cam.Dir.y * sign(newMY - y) < 0.99) * (float)radians((newMY - y) / ani.w * 180), ani.cam.Right);
 		cam.Dir = vec3(rotY * vec4(ani.cam.Dir, 1.0));
 		cam.Up = cross(ani.cam.Right, ani.cam.Dir);
 	}
@@ -194,9 +194,10 @@ void anim::createFrameBuffer(void) {
 	// generate texture
 	glGenTextures(1, &colorbuffer);
 	glBindTexture(GL_TEXTURE_2D, colorbuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w / scale, h / scale, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, (uint)(w / scale), (uint)(h / scale), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filtering);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filtering);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP, filtering);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// attach it to currently bound framebuffer object
@@ -209,7 +210,7 @@ void anim::createFrameBuffer(void) {
 	postproc.SetUniform("scale", shader::FLT, &scale);
 
 	if (scale < 1)
-		glViewport(0, 0, w / scale, h / scale);
+		glViewport(0, 0, (uint)(w / scale), (uint)(h / scale));
 	else
 		glViewport(0, 0, w, h);
 }

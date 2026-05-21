@@ -10,26 +10,28 @@ void renderInit(GLFWwindow* window) {
 	glBindVertexArray(VAO);
 
 	float t = (float)clock() / CLOCKS_PER_SEC;
-	ani.shd.SetUniform("time", shader::FLT, &t);
-	ani.shd.SetUniform("bgColor", shader::VEC3, (void*)glm::value_ptr(vec3(0.47, 0.64, 0.96)));
 
-	uint correct = 1;
-	ani.shd.SetUniform("colorCorrection", shader::BOOL, &correct);
-	uint shade = 1;
-	ani.shd.SetUniform("doShade", shader::BOOL, &shade);
-	float fog_coeff = 0.0125f;
-	ani.shd.SetUniform("fog_coeff", shader::FLT, &fog_coeff);
+	ani.shd.SetUniform("time", shader::FLT, &t);
 
 	ivec2 resolution = ivec2(ani.w, ani.h);
 	ani.shd.SetUniform("ScreenResolution", shader::IVEC2, &(resolution));
 	ani.postproc.SetUniform("ScreenResolution", shader::IVEC2, &(resolution));
 
-	uint doAA = 1;
-	ani.postproc.SetUniform("doAA", shader::BOOL, &doAA);
+	ani.setBackgroundColor(vec3(0.47, 0.64, 0.96));
+	ani.setColorCorrection(true);
+	ani.setDoShade(true);
+	ani.setFogDensity(0.0125f);
+	ani.setDoAA(true);
+
+	ani.setTolerance(1e-3f);
+	ani.setInfinity(300);
+	ani.setMaxSteps(1000);
 
 	ani.loadShapes("scenes/default_2.sc");
 
 	ani.createFrameBuffer();
+
+	UIInit();
 
 	return;
 }
@@ -39,6 +41,7 @@ void renderGUI(void) {
 	mainTopBar();
 	mainOverlay();
 	if (ani.gui.open_help_flag) helpInfo();
+	if (ani.gui.show_fps_flag) fpsCounter();
 }
 
 

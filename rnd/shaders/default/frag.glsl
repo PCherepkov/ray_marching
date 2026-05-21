@@ -18,14 +18,13 @@ uniform bool doShade;
 uniform bool shadow;
 uniform float fog_coeff;
 
+uniform float tol;
+uniform float inf;
+uniform uint MAX_STEPS;
+
 uniform uint shapes_num;
 
 #define PI 3.1415926538
-
-
-float tol = 1e-3;
-float inf = 3e2;
-uint MAX_STEPS = 1000;
 
 const uint SPHERE = 1;
 const uint PLANE = 2;
@@ -147,7 +146,7 @@ float box_sdf(shape S, vec3 p)
     vec3 pos = p - S.data.center;
     if (S.rotation.w != 0) pos = rotate(pos, S.rotation.xyz, S.rotation.w);
     vec3 q = abs(pos) - S.data.sides;
-    return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
+    return (length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0));
 }
 
 
@@ -313,7 +312,7 @@ vec3 shade(shape S, vec3 p, vec3 N)
     vec3 LightColor = vec3(1);
     vec3 viewDir = normalize(p - cameraPos);
 
-    if (abs(dot(viewDir, N)) < tol * 2) return bgColor;
+    // if (abs(dot(viewDir, N)) < tol * 2) return bgColor;
 
     float diff = max(dot(N, LightPos), 0.0);
     vec3 diffuse = LightColor * diff;
@@ -364,20 +363,31 @@ void main()
 
         obj = int(sdf_res.y);
         rstep = sdf_res.x;
-        if (shapes[obj].transparency > 0 && rstep < 0) {
+        shape s = shapes[obj];
+        if (s.transparency > 0 && rstep < 0) {
             rstep *= -1;
             // density += (shapes[obj].mode == SUB) ? 0 : rstep * shapes[obj].transparency;
-            div += rstep * (1/(shapes[obj].transparency) - 1);
+            div += rstep * (1/(s.transparency) - 1);
         }
-        if (shapes[obj].transparency > 0 && abs(rstep) < tol) {
+        if (s.transparency > 0 && abs(rstep) < tol) {
             rstep += tol * 2;
-            volume = mix(volume, shapes[obj].color.xyz, (div + density == 0) ? 0 : 1 - density/(density + div) );
+            // volume = mix(volume, shapes[obj].color.xyz, (div + density == 0) ? 0 : 1 - density/(density + div) );
+            vec3 mix_color = volume;
+            vec3 norm;
+            if (doShade) {
+                norm = Normal(pos);
+                mix_color = shade(s, pos, reflVec(norm, -dir));
+            } else {
+                mix_color = s.color.xyz;
+            }
+
+            volume = mix(volume, mix_color, (div + density == 0) ? 0 : 1 - density/(density + div) );
             density += div;
             div = 0;
             // volume = vec3(0,1,0);
         }
 
-        if (false && shapes[obj].mode == SUB && abs(rstep) < tol) {
+        if (false && s.mode == SUB && abs(rstep) < tol) {
             // rstep += 2 * tol;
             vec2 next_res = SDF(pos + dir * abs(rstep + tol * 2)); 
             if (shapes[int(next_res.y)].transparency > 0 || shapes[int(next_res.y)].mode == SUB) {

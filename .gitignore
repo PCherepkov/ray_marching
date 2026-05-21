@@ -362,3 +362,6 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /glfw/glfw-3.4.bin.WIN64
+/images
+/scenes/some_scene - Copy.sc
+/themes

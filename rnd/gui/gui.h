@@ -8,6 +8,7 @@
 class GUIData {
 public:
     bool open_help_flag;
+    bool show_fps_flag;
 };
 
 void openScene(void);
@@ -18,3 +19,6 @@ void newScene(void);
 void mainTopBar(void);
 void mainOverlay(void);
 void helpInfo(void);
+void fpsCounter(void);
+
+void UIInit(void);

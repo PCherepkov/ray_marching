@@ -1,7 +1,8 @@
-#include "gui.h"
+﻿#include "gui.h"
 #include "../anim/anim.h"
 
 bool transparencyOption;
+ImGuiStyle dark_style;
 
 
 void openScene(void) {
@@ -69,8 +70,10 @@ void newScene(void) {
 
 
 void helpInfo(void) {
-    if (!ImGui::Begin("Help", &ani.gui.open_help_flag, ImGuiWindowFlags_AlwaysAutoResize))
+    if (!ImGui::Begin("Help", &ani.gui.open_help_flag, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::End();
         return;
+    }
     if (ImGui::BeginPopupContextItem()) {
         if (ImGui::MenuItem("Close help"))
             ani.gui.open_help_flag = false;
@@ -82,27 +85,129 @@ void helpInfo(void) {
     ImGui::Text("Camera position");
     ImGui::PopFont();
     ImGui::Separator();
-    ImGui::Text("W - forward");
-    ImGui::Text("A - left");
-    ImGui::Text("S - backward");
-    ImGui::Text("D - right");
-    ImGui::Text("R - upward");
-    ImGui::Text("D - downward");
-    ImGui::Text("");
-    ImGui::Text("scroll wheel down - camera speed down");
-    ImGui::Text("scroll wheel up - camera speed up");
-    ImGui::Text("");
-    ImGui::Text("home - return to (0, 0, 0)");
-    ImGui::Text("");
-    ImGui::Text("Enter - place a unit sphere on top of the camera");
+    if (ImGui::BeginTable("camera controls", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame))
+    {
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("W");
+        ImGui::TableSetColumnIndex(1);
+        ImGui::Text("move forwards");
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("A");
+        ImGui::TableSetColumnIndex(1);
+        ImGui::Text("move left");
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("S");
+        ImGui::TableSetColumnIndex(1);
+        ImGui::Text("move backwards");
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("D");
+        ImGui::TableSetColumnIndex(1);
+        ImGui::Text("move right");
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("R");
+        ImGui::TableSetColumnIndex(1);
+        ImGui::Text("move up");
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("D");
+        ImGui::TableSetColumnIndex(1);
+        ImGui::Text("move down");
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("mouse scroll");
+        ImGui::TableSetColumnIndex(1);
+        ImGui::Text("change camera speed");
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("home");
+        ImGui::TableSetColumnIndex(1);
+        ImGui::Text("return to (0, 0, 0) coordinates");
+
+        ImGui::EndTable();
+    }
+
+    // ImGui::Text("Enter - place a unit sphere on top of the camera");
+    
     ImGui::Separator();
 
+    ImGui::PushFont(NULL, style.FontSizeBase * 1.5f);
+    ImGui::Text("Shapes in the scene");
+    ImGui::PopFont();
+    ImGui::Separator();
+
+    if (ImGui::BeginTable("camera controls", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame)) {
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("Elements");
+        ImGui::TableSetColumnIndex(1);
+
+        ImGui::EndTable();
+    }
+
+    static int my_image_width = 0;
+    static int my_image_height = 0;
+    static GLuint my_image_texture = 0;
+
+    if (!my_image_texture && false) {
+        bool ret = LoadTextureFromFile("images/frong.png", &my_image_texture, &my_image_width, &my_image_height);
+        IM_ASSERT(ret);
+    }
+
+    // ImGui::Text("pointer = %x", my_image_texture);
+    // ImGui::Text("size = %d x %d", my_image_width, my_image_height);
+    // ImGui::Image((ImTextureID)(intptr_t)my_image_texture, ImVec2(my_image_width, my_image_height));
+
+    ImGui::Text("\"Add shape\" button adds a shape to the scene");
+    ImGui::Text("Click on an element inside the list of shapes to expand the properties panel");
+    ImGui::Text("X - deletes the shape from the scene");
+    ImGui::Text("Arrows - deletes the shape from the scene");
+    ImGui::Separator();
+
+    ImGui::End();
+}
+
+void fpsCounter(void) {
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    float PAD = 4.0f;
+
+    ImVec2 work_pos = viewport->WorkPos;
+    ImVec2 work_size = viewport->WorkSize;
+    ImVec2 window_pos, window_pos_pivot;
+    window_pos.x = work_pos.x + work_size.x - PAD;
+    window_pos.y = work_pos.y + work_size.y - PAD;
+    window_pos_pivot.x = 1.0f;
+    window_pos_pivot.y = 1.0f;
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui::SetNextWindowBgAlpha(0.9f);
+    ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+    if (ImGui::Begin("fps", 0, ImGuiWindowFlags_AlwaysAutoResize |
+        ImGuiWindowFlags_NoSavedSettings |
+        ImGuiWindowFlags_NoFocusOnAppearing |
+        ImGuiWindowFlags_NoNav |
+        ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoDecoration)) {
+        ImGui::Text("FPS: %0.0f", io.Framerate);
+    }
     ImGui::End();
 }
 
 
 void mainTopBar(void) {
     static bool open_help_flag = false;
+    static bool fpscnt = false;
 
     if (ImGui::BeginMainMenuBar())
     {
@@ -116,11 +221,6 @@ void mainTopBar(void) {
             if (ImGui::MenuItem("Exit", "LShift+Esc")) { glfwSetWindowShouldClose(ani.window, true); }
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu("Help"))
-        {
-            if (ImGui::MenuItem("Open help", "")) { ani.gui.open_help_flag = true; }
-            ImGui::EndMenu();
-        }
         if (ImGui::BeginMenu("Options")) {
             ImGui::BeginTable("option table", 2, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchSame);
             ImGui::TableNextRow();
@@ -128,6 +228,7 @@ void mainTopBar(void) {
             static vec3 bgColor(0.47, 0.64, 0.96);
             ImGui::Text("Background color");
             ImGui::TableSetColumnIndex(1);
+            ImGui::SetNextItemWidth(-1);
             if (ImGui::ColorEdit3("##0", glm::value_ptr(bgColor), ImGuiColorEditFlags_NoPicker & 0)) ani.setBackgroundColor(bgColor);
 
             ImGui::TableNextRow();
@@ -142,6 +243,7 @@ void mainTopBar(void) {
             ImGui::Text("Fog density");
             ImGui::TableSetColumnIndex(1);
             static float fog_coeff = 0.0125f;
+            ImGui::SetNextItemWidth(-1);
             if (ImGui::DragFloat("##2", &fog_coeff, 0.0001f, 0, 1, "%.4f", ImGuiSliderFlags_AlwaysClamp)) {
                 // fog_coeff = (fog_coeff >= 0) ? fog_coeff : 0;
                 ani.setFogDensity(fog_coeff);
@@ -165,6 +267,7 @@ void mainTopBar(void) {
             ImGui::TableSetColumnIndex(0);
             ImGui::Text("Down-scaling");
             ImGui::TableSetColumnIndex(1);
+            ImGui::SetNextItemWidth(-1);
             if (ImGui::DragFloat("##5", &ani.scale, 0.5f, 0.5, 16, "%.1f", ImGuiSliderFlags_AlwaysClamp)) {
                 // ani.scale = clamp(ani.scale, 0.5f, 16.f);
                 ani.createFrameBuffer();
@@ -176,33 +279,130 @@ void mainTopBar(void) {
             ImGui::TableSetColumnIndex(1);
             const char* const list[2] = {"Nearest", "Linear"};
             static const char* cur = list[0];
+            ImGui::SetNextItemWidth(-1);
             if (ImGui::BeginCombo("##6", cur)) {
                 static bool nearest = (cur[0] == 'N'), linear = !nearest;
                 if (ImGui::Selectable("Nearest", &nearest, 2)) {
                     cur = list[0];
                     ani.filtering = GL_NEAREST;
                     ani.createFrameBuffer();
+                    linear = false;
                 }
                 if (ImGui::Selectable("Linear", &linear, 2)) {
                     cur = list[1];
                     ani.filtering = GL_LINEAR;
                     ani.createFrameBuffer();
+                    nearest = false;
                 }
                 ImGui::EndCombo();
             }
 
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            ImGui::Text("Transparency");
+            ImGui::Separator();
             ImGui::TableSetColumnIndex(1);
+            ImGui::Separator();
 
-            if (ImGui::Checkbox("##7", &transparencyOption)) ;
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Hit margin");
+            ImGui::TableSetColumnIndex(1);
+            static float tol = 0.001f;
+            ImGui::SetNextItemWidth(-1);
+            if (ImGui::DragFloat("##7", &tol, 0.001f, 1e-6f, 0.1f, "%.4f", ImGuiSliderFlags_AlwaysClamp)) {
+                ani.setTolerance(tol);
+            }
+
+            // uint MAX_STEPS = 1000;
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Render distance");
+            ImGui::TableSetColumnIndex(1);
+            static float infty = 300;
+            ImGui::SetNextItemWidth(-1);
+            if (ImGui::DragFloat("##8", &infty, 1, 1, 1000, "%.2f", ImGuiSliderFlags_AlwaysClamp)) {
+                ani.setInfinity(infty);
+            }
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Max step count");
+            ImGui::TableSetColumnIndex(1);
+            static int max_steps = 1000;
+            ImGui::SetNextItemWidth(-1);
+            if (ImGui::DragInt("##9", &max_steps, 1, 10, 100000, "%d", ImGuiSliderFlags_AlwaysClamp)) {
+                ani.setMaxSteps(max_steps);
+            }
 
             ImGui::EndTable();
             ImGui::EndMenu();
         }
+        if (ImGui::BeginMenu("Editor"))
+        {
+            ImGui::BeginTable("alignment", 2, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchSame);
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Font size");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::SetNextItemWidth(-1);
+            static float fontsz = 20;
+            if (ImGui::DragFloat("##0", &fontsz, 0.1f, 0, 1000, "%.0f", ImGuiSliderFlags_AlwaysClamp)) {
+                ImGuiIO& io = ImGui::GetIO();
+                // io.Fonts->AddFontFromFileTTF("./fonts/Roboto-Medium.ttf", fontsz);
+                io.FontGlobalScale = (fontsz > 0) ? fontsz/20 : 1;
+            }
+
+            const char* const themes[2] = { "Light", "Dark" };
+            static const char* theme = themes[1];
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Theme");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::SetNextItemWidth(-1);
+            if (ImGui::BeginCombo("##1", theme)) {
+                static bool light = (theme[0] == 'L'), dark = !light;
+                if (ImGui::Selectable("Light", &light, 2)) {
+                    theme = themes[0];
+                    ImGuiStyle& cur_style = ImGui::GetStyle();
+                    ImGui::StyleColorsLight(&cur_style);
+                    dark = false;
+                }
+                if (ImGui::Selectable("Dark", &dark, 2)) {
+                    theme = themes[1];
+                    ImGuiStyle& cur_style = ImGui::GetStyle();
+                    cur_style = dark_style;
+                    light = false;
+                }
+                ImGui::EndCombo();
+            }
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Show FPS");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::SetNextItemWidth(-1);
+            if (ImGui::Checkbox("##2", &fpscnt)) { ani.gui.show_fps_flag = fpscnt; }
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Transparency");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::SetNextItemWidth(-1);
+            ImGui::Checkbox("##3", &transparencyOption);
+
+            ImGui::EndTable();
+
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Help"))
+        {
+            if (ImGui::MenuItem("Show help", "")) { ani.gui.open_help_flag = true; }
+            ImGui::EndMenu();
+        }
         ImGui::EndMainMenuBar();
     }
+
     return;
 }
 
@@ -212,7 +412,8 @@ void mainOverlay(void) {
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize |
                                     ImGuiWindowFlags_NoSavedSettings |
                                     ImGuiWindowFlags_NoFocusOnAppearing |
-                                    ImGuiWindowFlags_NoNav;
+                                    ImGuiWindowFlags_NoNav |
+                                    ImGuiWindowFlags_NoBringToFrontOnFocus;
     ImGuiStyle style = ImGui::GetStyle();
 
     const float PAD = 0.0f;
@@ -230,6 +431,7 @@ void mainOverlay(void) {
     ImGui::SetNextWindowBgAlpha(0.9f);
 
     ImGui::SetNextWindowSize(ImVec2(0, viewport->WorkSize.y));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
 
     static bool* p_open = 0;
 
@@ -259,8 +461,13 @@ void mainOverlay(void) {
         for (int i = 0; i < n; i++) {
             ImGui::PushID(i);
             ImVec2 node_pos = ImGui::GetCursorScreenPos();
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
 
             if (ImGui::TreeNodeEx("##", ImGuiTreeNodeFlags_Framed, "%d %s", i + 1, snames[(*shapes)[i].type].c_str())) {
+                ImGui::BeginTable("border", 1, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_Resizable);
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::PushStyleVarY(ImGuiStyleVar_ItemSpacing, 0);
                 if (ImGui::BeginTable("move items table", 3, ImGuiTableFlags_SizingStretchSame * dostretch | ImGuiTableFlags_NoBordersInBody)) {
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
@@ -279,6 +486,8 @@ void mainOverlay(void) {
 
                     ImGui::EndTable();
                 }
+                ImGui::PopStyleVar();
+                ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6);
 
                 ImGui::SeparatorText("Shape");
                 apply |= (ImGui::RadioButton("Sphere", (int*)&((*shapes)[i].type), 1)); ImGui::SameLine();
@@ -292,10 +501,10 @@ void mainOverlay(void) {
                 apply |= (ImGui::RadioButton("subtraction", (int*)&((*shapes)[i].mode), 1)); ImGui::SameLine();
                 apply |= (ImGui::RadioButton("intersection", (int*)&((*shapes)[i].mode), 2));
 
-                ImGui::SeparatorText("Type of minimum");
-                apply |= (ImGui::RadioButton("regular min", (int*)&((*shapes)[i].min_type), 0)); ImGui::SameLine();
-                apply |= (ImGui::RadioButton("cubic soft", (int*)&((*shapes)[i].min_type), 1)); ImGui::SameLine();
-                apply |= (ImGui::RadioButton("exponential soft", (int*)&((*shapes)[i].min_type), 2));
+                ImGui::SeparatorText("Type of softening");
+                apply |= (ImGui::RadioButton("No softening", (int*)&((*shapes)[i].min_type), 0)); ImGui::SameLine();
+                apply |= (ImGui::RadioButton("cubic", (int*)&((*shapes)[i].min_type), 1)); ImGui::SameLine();
+                apply |= (ImGui::RadioButton("exponential", (int*)&((*shapes)[i].min_type), 2));
 
                 ImGui::SeparatorText("Soft min coeffitient");
                 apply |= (ImGui::DragFloat("k", &((*shapes)[i].min_coef), 0.01f, 0, 1, "%.3f"));
@@ -336,8 +545,12 @@ void mainOverlay(void) {
                 apply |= (ImGui::DragFloat("specular", glm::value_ptr((*shapes)[i].spec), 1.0f, 0, 1000, "%.0f"));
                 if (transparencyOption)
                     apply |= (ImGui::DragFloat("transparency", &((*shapes)[i].transparency), 0.05f, 0.f, 1.f, "%.3f", ImGuiSliderFlags_AlwaysClamp));
+                ImGui::Spacing();
+                ImGui::PopStyleVar();
+                ImGui::EndTable();
                 ImGui::TreePop();
             }
+            ImGui::PopStyleVar();
             ImGui::PopID();
         }
 
@@ -372,5 +585,61 @@ void mainOverlay(void) {
             ani.applyShapes();
     }
     ImGui::End();
+    ImGui::PopStyleVar();
     return;
+}
+
+
+void UIInit(void) {
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
+    ImVec4* colors = ImGui::GetStyle().Colors;
+    colors[ImGuiCol_Text] = ImVec4(0.95f, 0.93f, 0.93f, 1.00f);
+    colors[ImGuiCol_WindowBg] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+    colors[ImGuiCol_FrameBg] = ImVec4(0.22f, 0.22f, 0.22f, 0.54f);
+    colors[ImGuiCol_FrameBgHovered] = ImVec4(0.87f, 0.84f, 0.84f, 0.40f);
+    colors[ImGuiCol_FrameBgActive] = ImVec4(0.26f, 0.26f, 0.26f, 1.00f);
+    colors[ImGuiCol_TitleBg] = ImVec4(0.04f, 0.04f, 0.04f, 1.00f);
+    colors[ImGuiCol_TitleBgActive] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+    colors[ImGuiCol_CheckMark] = ImVec4(0.77f, 0.77f, 0.77f, 1.00f);
+    colors[ImGuiCol_SliderGrab] = ImVec4(0.78f, 0.77f, 0.74f, 0.25f);
+    colors[ImGuiCol_SliderGrabActive] = ImVec4(1.00f, 0.99f, 0.95f, 0.50f);
+    colors[ImGuiCol_Button] = ImVec4(0.59f, 0.59f, 0.56f, 0.40f);
+    colors[ImGuiCol_ButtonHovered] = ImVec4(0.50f, 0.50f, 0.49f, 0.75f);
+    colors[ImGuiCol_ButtonActive] = ImVec4(0.60f, 0.60f, 0.58f, 1.00f);
+    colors[ImGuiCol_Header] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+    colors[ImGuiCol_HeaderHovered] = ImVec4(0.33f, 0.35f, 0.35f, 1.00f);
+    colors[ImGuiCol_HeaderActive] = ImVec4(0.44f, 0.46f, 0.47f, 1.00f);
+    colors[ImGuiCol_SeparatorHovered] = ImVec4(0.75f, 0.75f, 0.75f, 0.78f);
+    colors[ImGuiCol_SeparatorActive] = ImVec4(0.75f, 0.75f, 0.75f, 1.00f);
+    colors[ImGuiCol_ResizeGrip] = ImVec4(0.98f, 0.98f, 0.98f, 0.20f);
+    colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.98f, 0.98f, 0.98f, 0.67f);
+    colors[ImGuiCol_ResizeGripActive] = ImVec4(0.98f, 0.98f, 0.98f, 0.95f);
+    colors[ImGuiCol_TabHovered] = ImVec4(0.52f, 0.51f, 0.52f, 1.00f);
+    colors[ImGuiCol_Tab] = ImVec4(0.20f, 0.20f, 0.20f, 0.86f);
+    colors[ImGuiCol_TabSelected] = ImVec4(0.35f, 0.34f, 0.34f, 1.00f);
+    colors[ImGuiCol_TabSelectedOverline] = ImVec4(0.66f, 0.75f, 0.86f, 1.00f);
+    colors[ImGuiCol_TabDimmed] = ImVec4(0.15f, 0.15f, 0.15f, 0.97f);
+    colors[ImGuiCol_TabDimmedSelected] = ImVec4(0.42f, 0.42f, 0.42f, 1.00f);
+    colors[ImGuiCol_TextSelectedBg] = ImVec4(0.62f, 0.60f, 0.60f, 0.35f);
+    colors[ImGuiCol_NavCursor] = ImVec4(0.87f, 0.92f, 0.98f, 1.00f);
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.ColorButtonPosition = ImGuiDir_Left;
+
+    // rounding
+    style.FrameRounding = 6;
+    style.PopupRounding = 6;
+    style.GrabRounding = 12;
+    style.ScrollbarRounding = 0;
+    style.WindowTitleAlign.x = 0.5;
+    style.WindowBorderSize = 0;
+    style.IndentSpacing = 0;
+    style.FrameBorderSize = 1;
+    style.WindowRounding = 8;
+    style.ColorMarkerSize = 4;
+    dark_style = style;
+    ImGuiIO& io = ImGui::GetIO();
 }

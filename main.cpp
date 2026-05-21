@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdlib.h>
 // #include <windows.h>
 
@@ -10,13 +10,14 @@ anim ani;
 
 
 void SetWindow(int w, int h, bool is_full_screen) {
+    bool doInit = !ani.window;
     if (ani.window != nullptr)
         glfwDestroyWindow(ani.window);
 
     if (is_full_screen)
-        ani.window = glfwCreateWindow(w, h, "SDF", glfwGetPrimaryMonitor(), NULL);
+        ani.window = glfwCreateWindow(w, h, "Blob+", glfwGetPrimaryMonitor(), NULL);
     else
-        ani.window = glfwCreateWindow(w, h, "SDF", NULL, NULL);
+        ani.window = glfwCreateWindow(w, h, "Blob+", NULL, NULL);
 
     if (ani.window == nullptr)
         return;
@@ -33,7 +34,8 @@ void SetWindow(int w, int h, bool is_full_screen) {
 
     ani.w = w, ani.h = h;
     glfwGetCursorPos(ani.window, &ani.x, &ani.y);
-    renderInit(ani.window);
+
+    if (doInit) renderInit(ani.window);
 }
 
 
@@ -53,6 +55,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    // glfwWindowHint(GLFW_DECORATED, false);
 
     glfwWindowHint(GLFW_SAMPLES, 4);
 
@@ -64,13 +67,19 @@ int main() {
     // glClear(GL_COLOR_BUFFER_BIT);
     glfwSwapInterval(0);
 
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.FontSizeBase = 20.0f;
+
+    // ImFont* font = io.Fonts->AddFontDefaultVector();
+    ImFontConfig config;
+    config.MergeMode = true;
     io.Fonts->AddFontFromFileTTF("./fonts/Roboto-Medium.ttf");
-    io.Fonts->AddFontFromFileTTF("./fonts/JetBrainsMono-Regular.ttf");
+    io.Fonts->AddFontFromFileTTF("./fonts/Roboto-Medium.ttf", 0.f, &config);
+    io.Fonts->AddFontFromFileTTF("./fonts/RobotoMonoNerdFont-Medium.ttf", 0.f, &config);
+    // io.Fonts->AddFontFromFileTTF("./fonts/RobotoMonoNerdFont-Medium.ttf");
 
     ImGui_ImplGlfw_InitForOpenGL(ani.window, true);
     ImGui_ImplOpenGL3_Init();

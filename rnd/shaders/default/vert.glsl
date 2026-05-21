@@ -18,8 +18,9 @@ void main() {
     if (scale >= 1.0)
         FragPos = vec3(gl_Position.xy * scale + scale - 1, gl_Position.z);
     else if (scale > 0) {
-        gl_Position.xy /= scale;
-        FragPos = vec3(gl_Position.xy / scale + 1, gl_Position.z);
+        // gl_Position.xy /= scale;
+        FragPos = vec3(gl_Position.xy * scale / scale + scale - scale + 1 - 1, gl_Position.z);
+        // FragPos /= scale;
     }
     return;
 }

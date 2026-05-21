@@ -136,7 +136,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -162,6 +162,7 @@
     <ClCompile Include="rnd\gui\gui.cpp" />
     <ClCompile Include="rnd\ray\shape.cpp" />
     <ClCompile Include="rnd\render.cpp" />
+    <ClCompile Include="stbi_image.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="def.h" />
@@ -179,6 +180,7 @@
     <ClInclude Include="rnd\ray\shape.h" />
     <ClInclude Include="rnd\render.h" />
     <ClInclude Include="rnd\shaders\shader.h" />
+    <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="rnd\shaders\default\frag.glsl" />
